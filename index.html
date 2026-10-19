@@ -100,8 +100,9 @@ const WORDS={
   shop:{page:"صفحة الزبون",you:"اسمك",yourPhone:"رقم تلفونك",people:"زبائنك",peopleAll:"الزبائن",link:"رابط الزبائن",gal:"صور من شغل المحل",galOwn:"صور من شغلك",galHint:"أضف صور قصاتك أو شغلك (لحد 25 صورة)، وتطلع للزبائن.",nameHint:"اسمك راح يبين للزبائن على الساعة المحجوزة، ورقمك ما يبين لأحد.",ph:"مثلًا: علي",place:"المحل"},
   doctor:{page:"صفحة المريض",you:"اسم المريض",yourPhone:"رقم تلفون المريض",people:"مرضاك",peopleAll:"المرضى",link:"رابط المرضى",gal:"صور العيادة",galOwn:"صور العيادة",galHint:"أضف صور العيادة (لحد 25 صورة)، وتطلع للمرضى.",nameHint:"اسمك راح يبين للمرضى على الساعة المحجوزة، ورقمك ما يبين لأحد.",ph:"مثلًا: محمد",place:"العيادة"}
 };
-const W=k=>WORDS[k==="doctor"?"doctor":"shop"];
-const TYPES={barber:"حلاق",doctor:"دكتور",shop:"محل / سوق"};
+const W=k=>WORDS[(k==="doctor"||k==="dentist")?"doctor":"shop"];
+const TYPES={barber:"حلاق",doctor:"دكتور",dentist:"طبيب أسنان",salon:"صالون نسائي",beauty:"مركز تجميل",sport:"رياضة",photo:"مصور",tailor:"خياط",hall:"قاعة مناسبات",lawyer:"محامي",mobile:"صيانة موبايلات",gym:"نادي جيم",shop:"محل"};
+const INFO={barber:"حجز مواعيد أونلاين للحلاقين.",doctor:"حجز مواعيد أونلاين للمرضى داخل العيادة.",dentist:"حجز مواعيد أونلاين للمرضى عند طبيب الأسنان.",salon:"حجز مواعيد أونلاين للصالون النسائي.",beauty:"حجز مواعيد أونلاين لمركز التجميل.",sport:"حجز ساعات الملعب أونلاين.",photo:"حجز مواعيد التصوير أونلاين.",tailor:"حجز مواعيد أونلاين عند الخياط للقياس والاستلام.",gym:"اشتراك أونلاين بالنادي، لشهر أو 3 أو 6 أشهر أو سنة، ويبدأ من اليوم اللي تختاره.",mobile:"حجز موعد أونلاين لتصليح وصيانة الموبايل.",lawyer:"حجز موعد استشارة قانونية أونلاين عند المحامي.",hall:"حجز القاعة أونلاين للأعراس والمناسبات، بفترة الظهر أو فترة الليل.",shop:"حجز مواعيد أونلاين للمحل."};
 const dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const app=document.getElementById("app");
 const q=new URLSearchParams(location.search);
@@ -119,9 +120,12 @@ function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function today(){return ymd(new Date())}
 function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")}
 function fmt(s){const [y,m,d]=s.split("-");return dayNames[new Date(+y,m-1,+d).getDay()]+" "+(+d)+"/"+(+m)}
-function t12(t){const [h,m]=t.split(":").map(Number);return (h%12||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"صباحًا":"مساءً")}
+let KIND="";
+const HALL={"12:00":"فترة الظهر (12 - 5 مساءً)","19:00":"فترة الليل (7 - 12 بالليل)"};
+const GYM={"01m":"اشتراك شهر","03m":"اشتراك 3 أشهر","06m":"اشتراك 6 أشهر","12m":"اشتراك سنة"};
+function t12(t){if(KIND==="hall"&&HALL[t])return HALL[t];if(KIND==="gym"&&GYM[t.slice(0,3)])return GYM[t.slice(0,3)];const [h,m]=t.split(":").map(Number);return (h%12||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"صباحًا":"مساءً")}
 function next7(){const a=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);a.push(d)}return a}
-function allSlots(){const o=[];for(let m=OPEN*60;m<CLOSE*60;m+=STEP)o.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));return o}
+function allSlots(){if(KIND==="hall")return ["12:00","19:00"];if(KIND==="gym")return ["01m","03m","06m","12m"];const o=[],st=KIND==="lawyer"?60:STEP;for(let m=OPEN*60;m<CLOSE*60;m+=st)o.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));return o}
 function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
 function note(cls,text){return '<div class="note '+cls+'">'+esc(text)+'</div>'}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -171,7 +175,7 @@ async function customer(shopId){
   let shop,closed=[],photos=[];
   try{shop=(await rpc("shop_public",{p_shop:shopId}))[0]}catch(e){return netErr()}
   if(!shop){app.innerHTML=note("bad","هذا الرابط غلط. اطلب الرابط الصحيح من المحل.");return}
-  const w=W(shop.kind);setHead(shop.name,w.page,shop.photo);
+  KIND=shop.kind||"";const w=W(shop.kind);setHead(shop.name,w.page,shop.photo);
   if(shop.phone){const s=$("sub");s.innerHTML=esc(w.page)+' · <a class="ltr" style="color:#fff" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a>'}
   if(!shop.active){app.innerHTML=note("bad","الحجز متوقف بهذا المحل حاليًا. تواصل وية المحل مباشرة.");return}
   try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
@@ -225,7 +229,7 @@ async function customer(shopId){
       const isMine=mine&&mine.day===day&&mine.time===t;
       if(isMine){b.classList.add("mine");b.innerHTML=esc(t12(t))+"<small>حجزك</small>";b.onclick=()=>slotInfo(t,mine.name,true)}
       else if(taken[t]!==undefined){b.classList.add("taken");b.setAttribute("aria-label",t12(t)+" محجوز");b.onclick=()=>slotInfo(t,taken[t],false)}
-      else if(day===today()&&t<=now){b.disabled=true}
+      else if(KIND!=="gym"&&day===today()&&t<=now){b.disabled=true}
       else{b.setAttribute("aria-pressed",t===slot);b.onclick=()=>{slot=t;$("slotInfo").innerHTML="";draw()}}
       box.appendChild(b)});
   }
@@ -255,6 +259,7 @@ async function customer(shopId){
     if(!name||phone.length<10){msg.innerHTML=note("bad","اكتب اسمك ورقم تلفونك كامل.");return}
     const btn=$("go");btn.disabled=true;
     try{
+      if(KIND==="gym")slot=slot.slice(0,3)+"-"+Math.random().toString(36).slice(2,7);
       const r=await rpc("book",{p_shop:shopId,p_day:day,p_time:slot,p_name:name,p_phone:phone});
       if(r==="ok"){
         const old=getMine();
@@ -288,6 +293,7 @@ async function owner(shopId){
   };
 }
 function ownerHome(shopId,shop,pin){
+  KIND=shop.kind||"";
   setHead("صفحة "+shop.name,shop.phone||"",shop.photo);
   $("sub").className="ltr";
   const active=shop.expires>=today();
@@ -305,8 +311,8 @@ function ownerHome(shopId,shop,pin){
     '<h2>'+w.galOwn+'</h2><p class="hint">'+w.galHint+'</p>'+
     '<button class="alt" id="upG">أضف صورة</button><div id="gMsg"></div><div class="gallery" id="g" style="margin-top:10px"></div>'+
     '<div class="info" style="margin-top:24px"><h2>شنو يقدم النظام؟</h2>'+
-    '<p>حجز مواعيد أونلاين للحلاقين والدكاترة والعيادات والأسواق والمحلات.</p>'+
-    '<p>الزبون أو المريض يحجز من تلفونه بدون اتصال وبدون انتظار، ويشوف الأوقات الفارغة قدامه.</p>'+
+    '<p>'+(INFO[shop.kind]||INFO.barber)+'</p>'+
+    '<p>'+(W(shop.kind)===WORDS.doctor?"المريض":"الزبون")+' يحجز من تلفونه بدون اتصال وبدون انتظار، ويشوف الأوقات الفارغة قدامه.</p>'+
     '<p>عندك صفحة خاصة برقم سري تشوف بيها كل مواعيدك، وتضيف صورتك وصور شغلك، وتغلق أيام العطل.</p></div>'+
     contact("للاستفسار والتواصل ولتجديد الاشتراك")+
     '<button class="alt" id="out" style="margin-top:24px">اطلع من الحساب</button>';
@@ -385,7 +391,7 @@ function adminHome(pin){
   const base=location.origin+location.pathname;
   app.innerHTML='<h2>إضافة محل جديد</h2>'+
     '<label for="an">اسم المحل</label><input id="an" placeholder="اسم صاحب المحل أو اسم المحل">'+
-    '<label for="at">نوع المحل</label><select id="at"><option value="barber">حلاق</option><option value="doctor">دكتور / عيادة</option><option value="shop">محل / سوق</option></select>'+
+    '<label for="at">نوع المحل</label><select id="at">'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k]+'</option>').join("")+'</select>'+
     '<label for="ap">رقم صاحب المحل</label><input id="ap" inputmode="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
     '<label for="ak">الرقم السري لصاحب المحل</label><input id="ak" inputmode="numeric" dir="ltr" placeholder="مثلًا: 4821">'+
     '<label for="am">مدة الاشتراك</label><select id="am"><option value="1">شهر واحد</option><option value="3">3 أشهر</option><option value="6">6 أشهر</option></select>'+
@@ -418,8 +424,11 @@ function adminHome(pin){
       const mk=(t,f)=>{const b=document.createElement("button");b.className="alt";b.textContent=t;b.onclick=f;row.appendChild(b)};
       mk("جدد شهر",async()=>{if(!confirm("تجدد اشتراك "+s.name+" شهر؟"))return;await rpc("admin_extend",{p_pin:pin,p_shop:s.id,p_months:1}).catch(()=>{});draw()});
       mk("نسخ "+w.link,()=>copy(cLink));
-      mk("غيّر النوع",async()=>{const order=["barber","doctor","shop"],nx=order[(order.indexOf(s.kind||"barber")+1)%3];
-        if(!confirm("تغيّر نوع "+s.name+" إلى "+TYPES[nx]+"؟"))return;await rpc("admin_set_kind",{p_pin:pin,p_shop:s.id,p_kind:nx}).catch(()=>{});draw()});
+      const sel=document.createElement("select");sel.style.width="auto";sel.setAttribute("aria-label","نوع "+s.name);
+      Object.keys(TYPES).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent="النوع: "+TYPES[k];if((s.kind||"barber")===k)o.selected=true;sel.appendChild(o)});
+      sel.onchange=async()=>{const nx=sel.value;if(!confirm("تغيّر نوع "+s.name+" إلى "+TYPES[nx]+"؟")){sel.value=s.kind||"barber";return}
+        await rpc("admin_set_kind",{p_pin:pin,p_shop:s.id,p_kind:nx}).catch(()=>{});draw()};
+      row.appendChild(sel);
       mk("نسخ رابط صاحب المحل",()=>copy(oLink));
       mk("دز بالواتساب",()=>{const t="أهلًا، هاي روابط نظام الحجز مال "+s.name+":\n"+w.link+" (حطه بالانستغرام أو دزه ل"+w.people+"): "+cLink+"\nرابط صفحتك: "+oLink+"\nرقمك السري: "+s.barber_pin+
         "\nللاستفسار وتجديد الاشتراك: "+OWNER_NAME+" "+OWNER_PHONE;
