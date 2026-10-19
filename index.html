@@ -20,48 +20,64 @@
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Readex Pro",Tahoma,Arial,sans-serif;line-height:1.6;font-size:16px}
 .pole{height:10px;background:repeating-linear-gradient(-45deg,var(--red) 0 14px,#fff 14px 28px,#2B4DA8 28px 42px,#fff 42px 56px)}
-header{background:var(--navy);color:#fff;padding:18px}
+header{background:var(--navy);color:#fff;padding:18px;display:flex;align-items:center;gap:14px}
+header img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #fff;flex:0 0 auto}
 header h1{margin:0;font-size:1.4rem}
 header p{margin:2px 0 0;opacity:.8;font-size:.9rem}
 main{max-width:640px;margin:0 auto;padding:18px}
-h2{font-size:1.15rem;margin:18px 0 10px}
+h2{font-size:1.15rem;margin:22px 0 10px}
 label{display:block;font-size:.88rem;color:var(--muted);margin:12px 0 4px}
+.hint{font-size:.8rem;color:var(--muted);margin:4px 0 0}
 input,select{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
 input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .btn{border:0;font:inherit;font-weight:600;padding:12px 18px;border-radius:10px;background:var(--red);color:#fff;cursor:pointer;width:100%;margin-top:16px}
 .btn[disabled]{opacity:.6}
 .alt{border:0;font:inherit;font-weight:600;background:var(--soft);color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-size:.88rem;text-decoration:none;display:inline-block}
+.alt.danger{color:var(--red)}
 .days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
 .day{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 12px;font:inherit;cursor:pointer;min-width:72px}
 .day b{display:block;font-size:1.1rem}
+.day small{display:block;font-size:.72rem;color:var(--red);font-weight:600}
 .day[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.day[aria-pressed="true"] small{color:#ffb3bd}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
 .slot{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 0;font:inherit;font-weight:600;font-size:.95rem;cursor:pointer}
-.slot[disabled]{background:var(--taken);color:var(--takenInk);text-decoration:line-through;cursor:not-allowed}
+.slot[disabled]{background:var(--taken);color:var(--takenInk);cursor:not-allowed}
+.slot.taken{background:var(--taken);color:var(--takenInk);text-decoration:line-through}
+.slot.mine{background:color-mix(in srgb,var(--ok) 20%,var(--surface));color:var(--ok);border-color:var(--ok);text-decoration:none}
+.slot.mine small{display:block;font-size:.72rem}
 .slot[aria-pressed="true"]{background:var(--red);color:#fff;border-color:var(--red)}
 .note{padding:12px 14px;border-radius:10px;background:var(--soft);margin:12px 0;font-size:.92rem}
 .note.bad{border-right:4px solid var(--red)} .note.good{border-right:4px solid var(--ok)}
-.mine{background:var(--surface);border:2px solid var(--ok);border-radius:12px;padding:14px;margin:4px 0 8px}
-.mine b{font-size:1.05rem}
+.mine-box{background:var(--surface);border:2px solid var(--ok);border-radius:12px;padding:14px;margin:4px 0 8px}
+.mine-box b{font-size:1.05rem}
 .list{list-style:none;padding:0;margin:0}
 .list li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .time{font-weight:700;font-size:1.05rem;min-width:86px}
 .who{flex:1;min-width:130px}
 .who small{display:block;color:var(--muted)}
 .ltr{direction:ltr;unicode-bidi:isolate}
-.row{display:flex;gap:6px;flex-wrap:wrap}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .tag{font-size:.8rem;padding:3px 10px;border-radius:99px;font-weight:600}
 .tag.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
 .tag.bad{background:color-mix(in srgb,var(--red) 18%,transparent);color:var(--red)}
 .empty{color:var(--muted);text-align:center;padding:24px 8px}
 .info p{margin:6px 0;color:var(--muted)}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gallery figure{margin:0;position:relative}
+.gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;cursor:pointer}
+.gallery button{position:absolute;top:4px;left:4px;border:0;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;width:28px;height:28px;cursor:pointer;font:inherit}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.viewer img{max-width:100%;max-height:100%;border-radius:10px}
+.me-photo{display:flex;align-items:center;gap:12px}
+.me-photo img{width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--soft)}
 .contact{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted);text-align:center}
 .contact a{color:var(--muted);font-weight:600}
 </style>
 </head>
 <body>
 <div class="pole" aria-hidden="true"></div>
-<header><h1 id="title">نظام الحجز والمواعيد</h1><p id="sub"></p></header>
+<header><img id="hPhoto" alt="" hidden><div><h1 id="title">نظام الحجز والمواعيد</h1><p id="sub"></p></div></header>
 <main id="app"><p class="empty">جاري التحميل…</p></main>
 
 <script>
@@ -72,7 +88,9 @@ const OPEN=8, CLOSE=24, STEP=30; // من 8 الصبح لحد 12 بالليل، �
 const dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const app=document.getElementById("app");
 const q=new URLSearchParams(location.search);
-const setHead=(t,s)=>{document.getElementById("title").textContent=t;document.getElementById("sub").textContent=s||""};
+const $=id=>document.getElementById(id);
+function setHead(t,s,photo){$("title").textContent=t;$("sub").textContent=s||"";
+  const im=$("hPhoto");if(photo){im.src=photo;im.hidden=false}else im.hidden=true}
 
 async function rpc(fn,args){
   const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",
@@ -82,6 +100,7 @@ async function rpc(fn,args){
 }
 function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function today(){return ymd(new Date())}
+function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")}
 function fmt(s){const [y,m,d]=s.split("-");return dayNames[new Date(+y,m-1,+d).getDay()]+" "+(+d)+"/"+(+m)}
 function t12(t){const [h,m]=t.split(":").map(Number);return (h%12||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"صباحًا":"مساءً")}
 function next7(){const a=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()+i);a.push(d)}return a}
@@ -90,71 +109,114 @@ function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s
 function note(cls,text){return '<div class="note '+cls+'">'+esc(text)+'</div>'}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function read(k){try{return localStorage.getItem(k)}catch(e){return null}}
-function daysBar(el,sel,onPick){el.innerHTML="";next7().forEach((d,i)=>{const b=document.createElement("button");b.className="day";
-  b.setAttribute("aria-pressed",ymd(d)===sel);b.innerHTML=(i===0?"اليوم":dayNames[d.getDay()])+"<b>"+d.getDate()+"</b>";
-  b.onclick=()=>onPick(ymd(d));el.appendChild(b)})}
+function daysBar(el,sel,closed,onPick){el.innerHTML="";next7().forEach((d,i)=>{const b=document.createElement("button");b.className="day";
+  const k=ymd(d);b.setAttribute("aria-pressed",k===sel);
+  b.innerHTML=(i===0?"اليوم":dayNames[d.getDay()])+"<b>"+d.getDate()+"</b>"+(closed.includes(k)?"<small>مغلق</small>":"");
+  b.onclick=()=>onPick(k);el.appendChild(b)})}
 function netErr(){app.innerHTML=note("bad","صار خلل بالاتصال. تأكد من الإنترنت وحدّث الصفحة.")}
 function wa(phone){return "https://wa.me/"+String(phone||"").replace(/\D/g,"").replace(/^0/,"964")}
 function contact(text){return '<div class="contact">'+esc(text)+'<br>صاحب إدارة البرنامج: '+esc(OWNER_NAME)+
   '<br><a class="ltr" href="tel:'+OWNER_PHONE+'">'+OWNER_PHONE+'</a> · <a href="'+wa(OWNER_PHONE)+'" target="_blank" rel="noopener">واتساب</a></div>'}
+async function copy(t,msg){try{await navigator.clipboard.writeText(t);alert(msg||"انتسخ الرابط")}catch(e){prompt("انسخ الرابط:",t)}}
+function viewImg(src){const v=document.createElement("div");v.className="viewer";v.innerHTML='<img alt="">';v.querySelector("img").src=src;v.onclick=()=>v.remove();document.body.appendChild(v)}
+function shrink(file,max){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{
+  const s=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");
+  c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  URL.revokeObjectURL(img.src);res(c.toDataURL("image/jpeg",0.75))};img.onerror=rej;img.src=URL.createObjectURL(file)})}
+function pickFile(cb){const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=()=>i.files[0]&&cb(i.files[0]);i.click()}
 
 /* ================= الزبون ================= */
 async function customer(shopId){
-  let shop;
-  try{shop=(await rpc("get_shop",{p_shop:shopId}))[0]}catch(e){return netErr()}
+  let shop,closed=[],photos=[];
+  try{shop=(await rpc("shop_public",{p_shop:shopId}))[0]}catch(e){return netErr()}
   if(!shop){app.innerHTML=note("bad","هذا الرابط غلط. اطلب الرابط الصحيح من المحل.");return}
-  setHead(shop.name,"صفحة الزبون");
+  setHead(shop.name,"صفحة الزبون",shop.photo);
   if(!shop.active){app.innerHTML=note("bad","الحجز متوقف بهذا المحل حاليًا. تواصل وية المحل مباشرة.");return}
-  app.innerHTML='<div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2><div class="slots" id="slots"></div>'+
-    '<label for="n">اسمك</label><input id="n" autocomplete="name" placeholder="مثلًا: علي">'+
+  try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
+  app.innerHTML='<div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2>'+
+    '<div id="closedNote"></div><div class="slots" id="slots"></div><div id="slotInfo"></div>'+
+    '<div id="form"><label for="n">اسمك</label><input id="n" autocomplete="name" placeholder="مثلًا: علي">'+
+    '<p class="hint">اسمك راح يبين للزبائن على الساعة المحجوزة، ورقمك ما يبين لأحد.</p>'+
     '<label for="p">رقم تلفونك</label><input id="p" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
-    '<button class="btn" id="go">احجز الموعد</button><div id="msg"></div>';
+    '<button class="btn" id="go">احجز الموعد</button><div id="msg"></div></div>'+
+    '<div id="gal"></div>';
   const mineKey="booking-"+shopId;
-  let day=today(),slot=null;
+  let day=today(),slot=null,changing=false;
+  const getMine=()=>{try{return JSON.parse(read(mineKey))}catch(e){return null}};
 
   async function showMine(){
-    const box=document.getElementById("mine");box.innerHTML="";
-    let b=null;try{b=JSON.parse(read(mineKey))}catch(e){}
-    if(!b)return;
-    const now=new Date(),nowStr=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
-    if(b.day<today()||(b.day===today()&&b.time<nowStr)){store(mineKey);return}
+    const box=$("mine");box.innerHTML="";
+    const b=getMine();if(!b)return;
+    if(b.day<today()||(b.day===today()&&b.time<nowHM())){store(mineKey);return}
     let st="new";try{st=await rpc("my_booking_status",{p_shop:shopId,p_day:b.day,p_time:b.time,p_phone:b.phone})}catch(e){}
     if(st==="cancel"||st===null){store(mineKey);box.innerHTML=note("bad","موعدك السابق انلغى. تكدر تحجز موعد جديد.");return}
-    box.innerHTML='<div class="mine">لقد حجزت موعدك<br><b>يوم '+esc(fmt(b.day))+' الساعة '+esc(t12(b.time))+'</b><br><small>باسم '+esc(b.name)+'</small>'+
-      '<div style="margin-top:10px"><button class="alt" id="cancelMine">إلغاء الحجز</button></div></div>';
-    document.getElementById("cancelMine").onclick=async()=>{
-      if(!confirm("متأكد تريد تلغي موعدك؟"))return;
-      try{await rpc("customer_cancel",{p_shop:shopId,p_day:b.day,p_time:b.time,p_phone:b.phone});
-        store(mineKey);box.innerHTML=note("good","انلغى موعدك.");draw();
-      }catch(e){alert("ما انلغى الموعد بسبب خلل بالاتصال. جرب مرة ثانية.")}
-    };
+    box.innerHTML='<div class="mine-box">لقد حجزت موعدك<br><b>يوم '+esc(fmt(b.day))+' الساعة '+esc(t12(b.time))+'</b><br><small>باسم '+esc(b.name)+'</small>'+
+      (closed.includes(b.day)?note("bad","المحل مغلق يوم موعدك. تواصل وية المحل أو غيّر موعدك."):"")+
+      '<div class="row"><button class="alt" id="chg">تغيير الموعد</button><button class="alt danger" id="cxl">إلغاء الحجز</button></div></div>';
+    $("chg").onclick=startChange;$("cxl").onclick=cancelMine;
+  }
+  function startChange(){
+    const b=getMine();if(!b)return;changing=true;
+    $("n").value=b.name;$("p").value=b.phone;
+    $("msg").innerHTML=note("","اختار يوم وساعة جديدة ودوس احجز، وموعدك القديم ينلغى وحده.");
+    $("days").scrollIntoView({behavior:"smooth"});
+  }
+  async function cancelMine(){
+    const b=getMine();if(!b||!confirm("متأكد تريد تلغي موعدك؟"))return;
+    try{await rpc("customer_cancel",{p_shop:shopId,p_day:b.day,p_time:b.time,p_phone:b.phone});
+      store(mineKey);changing=false;$("mine").innerHTML=note("good","انلغى موعدك.");$("slotInfo").innerHTML="";draw();
+    }catch(e){alert("ما انلغى الموعد بسبب خلل بالاتصال. جرب مرة ثانية.")}
   }
 
   async function draw(){
-    daysBar(document.getElementById("days"),day,d=>{day=d;slot=null;draw()});
-    const box=document.getElementById("slots");box.innerHTML='<span class="empty">جاري التحميل…</span>';
-    let taken=[];try{taken=(await rpc("taken_slots",{p_shop:shopId,p_day:day}))||[]}catch(e){box.innerHTML=note("bad","ما گدرنا نجيب الأوقات. حدّث الصفحة.");return}
-    const now=new Date(),nowStr=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+    daysBar($("days"),day,closed,d=>{day=d;slot=null;$("slotInfo").innerHTML="";draw()});
+    const isClosed=closed.includes(day);
+    $("closedNote").innerHTML=isClosed?note("bad","المحل مغلق بهذا اليوم. اختار يوم ثاني."):"";
+    $("form").hidden=isClosed;
+    const box=$("slots");box.innerHTML=isClosed?"":'<span class="empty">جاري التحميل…</span>';
+    if(isClosed)return;
+    let info=[];try{info=(await rpc("slots_info",{p_shop:shopId,p_day:day}))||[]}catch(e){box.innerHTML=note("bad","ما گدرنا نجيب الأوقات. حدّث الصفحة.");return}
+    const taken={};info.forEach(x=>taken[x.time]=x.name);
+    const mine=getMine(),now=nowHM();
     box.innerHTML="";
     allSlots().forEach(t=>{const b=document.createElement("button");b.className="slot";b.textContent=t12(t);
-      if(taken.includes(t)||(day===today()&&t<=nowStr))b.disabled=true;
-      b.setAttribute("aria-pressed",t===slot);b.onclick=()=>{slot=t;draw()};box.appendChild(b)});
+      const isMine=mine&&mine.day===day&&mine.time===t;
+      if(isMine){b.classList.add("mine");b.innerHTML=esc(t12(t))+"<small>حجزك</small>";b.onclick=()=>slotInfo(t,mine.name,true)}
+      else if(taken[t]!==undefined){b.classList.add("taken");b.setAttribute("aria-label",t12(t)+" محجوز");b.onclick=()=>slotInfo(t,taken[t],false)}
+      else if(day===today()&&t<=now){b.disabled=true}
+      else{b.setAttribute("aria-pressed",t===slot);b.onclick=()=>{slot=t;$("slotInfo").innerHTML="";draw()}}
+      box.appendChild(b)});
   }
-  showMine();draw();
+  function slotInfo(t,name,isMine){
+    const el=$("slotInfo");
+    el.innerHTML='<div class="note '+(isMine?"good":"")+'">'+(isMine?"هذا حجزك":"محجوز")+" باسم "+esc(name)+"، يوم "+esc(fmt(day))+" الساعة "+esc(t12(t))+
+      (isMine?'<div class="row"><button class="alt" id="chg2">تغيير الموعد</button><button class="alt danger" id="cxl2">إلغاء الحجز</button></div>':"")+'</div>';
+    if(isMine){$("chg2").onclick=startChange;$("cxl2").onclick=cancelMine}
+  }
+  async function gallery(){
+    try{photos=(await rpc("shop_photos",{p_shop:shopId}))||[]}catch(e){return}
+    if(!photos.length)return;
+    $("gal").innerHTML='<h2>صور من شغل المحل</h2><div class="gallery" id="g"></div>';
+    photos.forEach(p=>{const f=document.createElement("figure");const im=document.createElement("img");im.src=p.data;im.alt="صورة من شغل المحل";im.loading="lazy";im.onclick=()=>viewImg(p.data);f.appendChild(im);$("g").appendChild(f)});
+  }
+  showMine();draw();gallery();
 
-  document.getElementById("go").onclick=async()=>{
-    const name=document.getElementById("n").value.trim(),phone=document.getElementById("p").value.trim(),msg=document.getElementById("msg");
+  $("go").onclick=async()=>{
+    const name=$("n").value.trim(),phone=$("p").value.trim(),msg=$("msg");
     if(!slot){msg.innerHTML=note("bad","اختار ساعة الموعد أولًا.");return}
     if(!name||phone.length<10){msg.innerHTML=note("bad","اكتب اسمك ورقم تلفونك كامل.");return}
-    const btn=document.getElementById("go");btn.disabled=true;
+    const btn=$("go");btn.disabled=true;
     try{
       const r=await rpc("book",{p_shop:shopId,p_day:day,p_time:slot,p_name:name,p_phone:phone});
       if(r==="ok"){
+        const old=getMine();
+        if(changing&&old)await rpc("customer_cancel",{p_shop:shopId,p_day:old.day,p_time:old.time,p_phone:old.phone}).catch(()=>{});
         store(mineKey,JSON.stringify({day,time:slot,name,phone}));
-        msg.innerHTML=note("good","تم الحجز يوم "+fmt(day)+" الساعة "+t12(slot)+". نشوفك!");
-        showMine();window.scrollTo({top:0,behavior:"smooth"});
+        msg.innerHTML=note("good",(changing?"تغيّر موعدك إلى ":"تم الحجز ")+"يوم "+fmt(day)+" الساعة "+t12(slot)+". نشوفك!");
+        changing=false;showMine();window.scrollTo({top:0,behavior:"smooth"});
       }
       else if(r==="taken")msg.innerHTML=note("bad","هذا الوقت انحجز قبل شوية. اختار وقت ثاني.");
+      else if(r==="closed")msg.innerHTML=note("bad","المحل مغلق بهذا اليوم. اختار يوم ثاني.");
       else msg.innerHTML=note("bad","الحجز متوقف بهذا المحل حاليًا.");
       slot=null;draw();
     }catch(e){msg.innerHTML=note("bad","ما انحجز الموعد بسبب خلل بالاتصال. جرب مرة ثانية.")}
@@ -170,35 +232,73 @@ async function owner(shopId){
     if(s)return ownerHome(shopId,s,saved)}
   app.innerHTML='<h2>ادخل رقمك السري</h2><input id="pin" inputmode="numeric" type="password" dir="ltr"><button class="btn" id="in">ادخل</button><div id="msg"></div>'+
     contact("للاستفسار والتواصل ولتجديد الاشتراك");
-  document.getElementById("in").onclick=async()=>{
-    const pin=document.getElementById("pin").value.trim();
+  $("in").onclick=async()=>{
+    const pin=$("pin").value.trim();
     let s=null;try{s=(await rpc("barber_shop",{p_shop:shopId,p_pin:pin}))[0]}catch(e){}
-    if(!s){document.getElementById("msg").innerHTML=note("bad","الرقم السري غلط، أو الرابط غلط. جرب مرة ثانية.");return}
+    if(!s){$("msg").innerHTML=note("bad","الرقم السري غلط، أو الرابط غلط. جرب مرة ثانية.");return}
     store(key,pin);ownerHome(shopId,s,pin);
   };
 }
 function ownerHome(shopId,shop,pin){
-  setHead("صفحة "+shop.name,shop.phone||"");
-  document.getElementById("sub").className="ltr";
+  setHead("صفحة "+shop.name,shop.phone||"",shop.photo);
+  $("sub").className="ltr";
   const active=shop.expires>=today();
-  let day=today();
+  const cLink=location.origin+location.pathname+"?shop="+shopId;
+  let day=today(),closed=[];
   app.innerHTML=(active?note("good","اشتراكك فعّال لغاية "+shop.expires.split("-").reverse().join("/")):
       note("bad","اشتراكك منتهي، والزباين ما يكدرون يحجزون. تواصل ويانا حتى تجدده."))+
-    '<div class="days" id="days"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul>'+
-    '<button class="alt" id="out" style="margin-top:16px">اطلع من الحساب</button>'+
+    '<h2>رابط الحجز لزبائنك</h2><p class="hint">دزه لزبائنك أو حطه بالانستغرام، وكل واحد يحجز منه.</p>'+
+    '<div class="row"><button class="alt" id="cpy">نسخ رابط الزبائن</button><a class="alt" id="shr" target="_blank" rel="noopener">شارك بالواتساب</a></div>'+
+    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul>'+
+    '<h2>صورتك</h2><div class="me-photo"><img id="myPhoto" alt="صورتك"><div class="row"><button class="alt" id="upMe">'+(shop.photo?"غيّر الصورة":"أضف صورتك")+'</button></div></div>'+
+    '<p class="hint">تطلع صورتك فوق بصفحة الزبائن.</p>'+
+    '<h2>صور من شغلك</h2><p class="hint">أضف صور قصاتك أو شغلك (لحد 12 صورة)، وتطلع للزبائن.</p>'+
+    '<button class="alt" id="upG">أضف صورة</button><div id="gMsg"></div><div class="gallery" id="g" style="margin-top:10px"></div>'+
+    '<button class="alt" id="out" style="margin-top:24px">اطلع من الحساب</button>'+
     contact("للاستفسار والتواصل ولتجديد الاشتراك");
-  document.getElementById("out").onclick=()=>{store("pin-"+shopId);location.reload()};
+  if(shop.photo)$("myPhoto").src=shop.photo;
+  $("cpy").onclick=()=>copy(cLink);
+  $("shr").href="https://wa.me/?text="+encodeURIComponent("احجز موعدك عند "+shop.name+" من هذا الرابط: "+cLink);
+  $("out").onclick=()=>{store("pin-"+shopId);location.reload()};
+  $("upMe").onclick=()=>pickFile(async f=>{
+    try{const data=await shrink(f,400);await rpc("owner_set_photo",{p_shop:shopId,p_pin:pin,p_photo:data});
+      shop.photo=data;$("myPhoto").src=data;$("hPhoto").src=data;$("hPhoto").hidden=false;$("upMe").textContent="غيّر الصورة";
+    }catch(e){alert("ما انرفعت الصورة. جرب صورة ثانية أو تأكد من الإنترنت.")}});
+  $("upG").onclick=()=>pickFile(async f=>{
+    $("gMsg").innerHTML=note("","جاري رفع الصورة…");
+    try{const data=await shrink(f,900);const r=await rpc("owner_add_photo",{p_shop:shopId,p_pin:pin,p_data:data});
+      $("gMsg").innerHTML=r==="full"?note("bad","وصلت 12 صورة. امسح صورة حتى تضيف غيرها."):"";loadG();
+    }catch(e){$("gMsg").innerHTML=note("bad","ما انرفعت الصورة. جرب مرة ثانية.")}});
+  async function loadG(){
+    let ph=[];try{ph=(await rpc("shop_photos",{p_shop:shopId}))||[]}catch(e){return}
+    const g=$("g");g.innerHTML="";
+    ph.forEach(p=>{const f=document.createElement("figure");
+      const im=document.createElement("img");im.src=p.data;im.alt="صورة من شغلك";im.onclick=()=>viewImg(p.data);
+      const x=document.createElement("button");x.textContent="×";x.setAttribute("aria-label","امسح الصورة");
+      x.onclick=async()=>{if(!confirm("تمسح هاي الصورة؟"))return;await rpc("owner_delete_photo",{p_shop:shopId,p_pin:pin,p_id:p.id}).catch(()=>{});loadG()};
+      f.append(im,x);g.appendChild(f)});
+  }
   async function draw(){
-    daysBar(document.getElementById("days"),day,d=>{day=d;draw()});
-    const ul=document.getElementById("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
+    try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
+    daysBar($("days"),day,closed,d=>{day=d;draw()});
+    const isClosed=closed.includes(day);
+    $("dayCtl").innerHTML=(isClosed?note("bad","هذا اليوم مغلق، والزبائن ما يكدرون يحجزون بيه."):"")+
+      '<button class="alt '+(isClosed?"":"danger")+'" id="tog">'+(isClosed?"افتح هذا اليوم":"أغلق هذا اليوم")+'</button>';
+    $("tog").onclick=async()=>{
+      if(!isClosed&&!confirm("تغلق يوم "+fmt(day)+"؟ الزبائن ما راح يكدرون يحجزون بيه."))return;
+      await rpc("owner_toggle_day",{p_shop:shopId,p_pin:pin,p_day:day}).catch(()=>{});draw()};
+    const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let rows=[];try{rows=(await rpc("barber_bookings",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال. حدّث الصفحة.</li>';return}
     rows=rows.filter(x=>x.status!=="cancel");
-    document.getElementById("cnt").textContent=rows.length+" موعد، خلص منهم "+rows.filter(x=>x.status==="done").length;
+    $("cnt").textContent=rows.length+" موعد، خلص منهم "+rows.filter(x=>x.status==="done").length;
     ul.innerHTML=rows.length?"":'<li class="empty">ماكو مواعيد بهذا اليوم بعد.</li>';
     rows.forEach(x=>{const li=document.createElement("li");
       li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span>';
-      const row=document.createElement("span");row.className="row";
-      if(x.status==="done")row.innerHTML='<span class="tag ok">خلص</span>';
+      const row=document.createElement("span");row.className="row";row.style.marginTop="0";
+      if(isClosed){const n=document.createElement("a");n.className="alt";n.textContent="بلّغه بالواتساب";n.target="_blank";n.rel="noopener";
+        n.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، نعتذر منك، المحل مغلق يوم "+fmt(day)+" وموعدك كان الساعة "+t12(x.time)+". تكدر تحجز موعد جديد من هذا الرابط: "+cLink);
+        row.appendChild(n)}
+      if(x.status==="done")row.insertAdjacentHTML("beforeend",'<span class="tag ok">خلص</span>');
       else{
         const d=document.createElement("button");d.className="alt";d.textContent="خلص";
         d.onclick=async()=>{await rpc("barber_set_status",{p_shop:shopId,p_pin:pin,p_id:x.id,p_status:"done"}).catch(()=>{});draw()};
@@ -207,7 +307,7 @@ function ownerHome(shopId,shop,pin){
         row.append(d,c)}
       li.appendChild(row);ul.appendChild(li)});
   }
-  draw();
+  draw();loadG();
 }
 
 /* ================= المدير ================= */
@@ -216,10 +316,10 @@ async function admin(){
   const saved=read("admin-pin");
   if(saved&&await rpc("admin_login",{p_pin:saved}).catch(()=>false))return adminHome(saved);
   app.innerHTML='<h2>ادخل رمز المدير</h2><input id="pin" inputmode="numeric" type="password" dir="ltr"><button class="btn" id="in">ادخل</button><div id="msg"></div>';
-  document.getElementById("in").onclick=async()=>{
-    const pin=document.getElementById("pin").value.trim();
+  $("in").onclick=async()=>{
+    const pin=$("pin").value.trim();
     let ok=false;try{ok=await rpc("admin_login",{p_pin:pin})}catch(e){}
-    if(!ok){document.getElementById("msg").innerHTML=note("bad","الرمز غلط.");return}
+    if(!ok){$("msg").innerHTML=note("bad","الرمز غلط.");return}
     store("admin-pin",pin);adminHome(pin);
   };
 }
@@ -234,18 +334,18 @@ function adminHome(pin){
     '<h2>المحلات المشتركة</h2><ul class="list" id="list"></ul>'+
     '<button class="alt" id="out" style="margin-top:16px">اطلع من الحساب</button>'+
     '<div class="contact">صاحب إدارة البرنامج: '+esc(OWNER_NAME)+'<br><span class="ltr">'+OWNER_PHONE+'</span></div>';
-  document.getElementById("out").onclick=()=>{store("admin-pin");location.reload()};
-  document.getElementById("add").onclick=async()=>{
-    const n=document.getElementById("an").value.trim(),p=document.getElementById("ap").value.trim(),k=document.getElementById("ak").value.trim(),m=+document.getElementById("am").value;
-    const msg=document.getElementById("msg");
+  $("out").onclick=()=>{store("admin-pin");location.reload()};
+  $("add").onclick=async()=>{
+    const n=$("an").value.trim(),p=$("ap").value.trim(),k=$("ak").value.trim(),m=+$("am").value;
+    const msg=$("msg");
     if(!n||k.length<4){msg.innerHTML=note("bad","اكتب اسم المحل ورقم سري لصاحب المحل من 4 أرقام أو أكثر.");return}
     try{await rpc("admin_add_shop",{p_pin:pin,p_name:n,p_phone:p,p_barber_pin:k,p_months:m});
       msg.innerHTML=note("good","انضاف المحل. دز الرابط والرقم السري لصاحب المحل.");
-      ["an","ap","ak"].forEach(id=>document.getElementById(id).value="");draw();
+      ["an","ap","ak"].forEach(id=>$(id).value="");draw();
     }catch(e){msg.innerHTML=note("bad","ما انضاف المحل بسبب خلل بالاتصال.")}
   };
   async function draw(){
-    const ul=document.getElementById("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
+    const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let shops=[];try{shops=(await rpc("admin_shops",{p_pin:pin}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال.</li>';return}
     ul.innerHTML=shops.length?"":'<li class="empty">ماكو محلات بعد. أضف أول محل من فوق.</li>';
     shops.forEach(s=>{
@@ -267,7 +367,6 @@ function adminHome(pin){
   }
   draw();
 }
-async function copy(t){try{await navigator.clipboard.writeText(t);alert("انتسخ الرابط")}catch(e){prompt("انسخ الرابط:",t)}}
 
 /* ================= الصفحة الرئيسية ================= */
 function home(){
@@ -276,12 +375,12 @@ function home(){
     '<div class="info"><h2>شنو يقدم النظام؟</h2>'+
     '<p>حجز مواعيد أونلاين للحلاقين والدكاترة والأسواق والمحلات.</p>'+
     '<p>الزبون يحجز من تلفونه بدون اتصال وبدون انتظار، ويشوف الأوقات الفارغة قدامه.</p>'+
-    '<p>صاحب المحل عنده صفحة خاصة برقم سري يشوف بيها كل مواعيده مرتبة.</p></div>'+
+    '<p>صاحب المحل عنده صفحة خاصة برقم سري يشوف بيها كل مواعيده، ويضيف صورته وصور شغله، ويغلق أيام العطل.</p></div>'+
     '<h2>تريد تشترك لمحلك؟</h2>'+
     '<div class="row"><a class="alt" href="tel:'+OWNER_PHONE+'">اتصل: <span class="ltr">'+OWNER_PHONE+'</span></a>'+
     '<a class="alt" href="'+wa(OWNER_PHONE)+'" target="_blank" rel="noopener">راسلني واتساب</a></div>'+
     '<button class="alt" id="adm" style="margin-top:40px">دخول المدير</button>';
-  document.getElementById("adm").onclick=()=>{location.href=location.pathname+"?admin"};
+  $("adm").onclick=()=>{location.href=location.pathname+"?admin"};
 }
 
 /* ================= التوجيه ================= */
