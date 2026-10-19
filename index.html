@@ -182,11 +182,26 @@ main#app>*:nth-child(4){animation-delay:.15s}main#app>*:nth-child(5){animation-d
 .adm-big{display:block;width:80%;max-width:320px;margin:28px auto 8px!important;font-family:Lalezar,inherit;font-size:22px!important;padding:16px!important;
  border-radius:20px!important;border:2px solid var(--gold)!important;box-shadow:0 6px 18px rgba(20,48,107,.25)}
 @media (prefers-reduced-motion:reduce){.star8{animation:none}}
-.sub-box{border-radius:14px;padding:14px;margin:6px 0 14px;text-align:center;border:2px solid;display:flex;flex-direction:column;gap:4px}
+.sub-box{border-radius:10px;padding:7px 10px;margin:4px 0 10px;text-align:center;border:1px solid;display:flex;flex-direction:column;gap:1px;font-size:.85rem;line-height:1.5}
+.sub-box small{font-size:.78rem}
 .sub-box.ok{background:#E6F6F1;border-color:#1597A0;color:#0b4d52}
 .sub-box.warn{background:#FFF6E0;border-color:#E2A82B;color:#6b4a00}
 .sub-box.bad{background:#FCE8EB;border-color:#C2364B;color:#7a1626}
-.sub-left{font-family:Lalezar,inherit;font-size:1.6rem}
+.sub-left{font-weight:700;font-size:.95rem}
+.walk-box{background:#fff;border:2px dashed #E2A82B;border-radius:14px;padding:14px;margin:10px 0}
+#walkBtn{margin:10px 0}
+header{flex-direction:column;justify-content:center;text-align:center}
+header>div:not(.waves){width:100%;text-align:center}
+header #sub,header #sub *{text-align:center}
+header #sub .ltr{direction:ltr;unicode-bidi:isolate}
+.sub-corner{position:absolute!important;top:8px;left:10px;z-index:3;font-size:.68rem;line-height:1.45;text-align:left;
+  background:rgba(0,0,0,.22);border-radius:8px;padding:4px 7px;color:#fff;font-weight:400;max-width:42%}
+.sub-corner b{font-weight:700}
+.sub-corner.warn{background:rgba(226,168,43,.85);color:#3a2800}
+.sub-corner.bad{background:rgba(194,54,75,.9)}
+.lock-box{text-align:center;background:#FCE8EB;border:2px solid #C2364B;border-radius:14px;padding:18px;margin:12px 0}
+.lock-box h2{color:#7a1626;margin-top:0}
+.lock-n{font-weight:700;font-size:1.1rem;color:#14306B}
 </style>
 </head>
 <body>
@@ -331,9 +346,9 @@ async function customer(shopId){
   KIND=shop.kind||"";const w=W(shop.kind);setHead(shop.name,w.page,shop.photo);
   if(!shop.phone){try{const c=await rpc("shop_contact",{p_shop:shopId});shop.phone=(Array.isArray(c)?(c[0]&&(c[0].phone||c[0].shop_contact)):c)||""}catch(e){}}
   if(shop.phone){const s=$("sub");s.innerHTML=esc(w.page)+' · <a class="ltr" style="color:#fff" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a>'}
-  if(!shop.active){app.innerHTML=note("bad","الحجز متوقف بهذا المحل حاليًا. تواصل وية المحل مباشرة.");return}
+  const expNote=shop.active?"":note("bad","انتهى اشتراك صفحة "+(HEADW[shop.kind||"barber"]||"المحل")+" حاليًا. تگدر تحجز عادي، وحجزك يوصله بعد ما يجدد.");
   try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
-  app.innerHTML='<div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2>'+
+  app.innerHTML=expNote+'<div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2>'+
     '<div id="closedNote"></div><div class="slots" id="slots"></div><div id="slotInfo"></div>'+
     '<div id="form"><label for="n">'+w.you+'</label><input id="n" autocomplete="name" placeholder="'+w.ph+'">'+
     '<p class="hint">'+w.nameHint+'</p>'+
@@ -473,15 +488,22 @@ async function ownerHome(shopId,shop,pin){
   const left=Math.round((new Date(shop.expires+"T00:00:00")-new Date(today()+"T00:00:00"))/864e5)+1;
   const subName=x=>{const f=SUBS.find(y=>y[0]===x);return f?f[1]:x+" يوم"};
   const leftTxt=n=>n===1?"باقي يوم واحد، آخر يوم اليوم":n===2?"باقي يومين":n<=10?"باقي "+n+" أيام":"باقي "+n+" يوم";
-  app.innerHTML='<div class="sub-box '+(active?(left<=3?"warn":"ok"):"bad")+'">'+
-      (active?(shop.sub_days?'<div>اشتراكك: <b>'+subName(shop.sub_days)+'</b></div>':'')+
-        '<div class="sub-left">'+leftTxt(left)+'</div><small>ينتهي يوم '+shop.expires.split("-").reverse().join("/")+'</small>'+
-        (left<=3?'<small>اشتراكك قرب يخلص، تواصل ويانا حتى تجدده.</small>':'')
-      :'<div class="sub-left">تم انتهاء اشتراكك، أرجو التجديد</div><small>'+w.peopleAll+' ما يكدرون يحجزون هسه. للتجديد: '+OWNER_NAME+' <a class="ltr" href="tel:'+OWNER_PHONE+'">'+OWNER_PHONE+'</a></small>')+
-    '</div>'+
+  if(!active){
+    let n=0;try{n=await rpc("owner_pending_count",{p_shop:shopId,p_pin:pin})||0}catch(e){}
+    app.innerHTML='<div class="lock-box"><h2>انتهى اشتراكك</h2><p>أرجو التجديد حتى ترجع تشتغل الصفحة.</p>'+
+      (n>0?'<p class="lock-n">لديك '+n+' حجوزات من '+w.peopleAll+'</p><p class="hint">تگدر تشوفها بعد التجديد.</p>':'')+
+      '<p>للتجديد: '+esc(OWNER_NAME)+'</p><div class="row" style="justify-content:center"><a class="btn" href="tel:'+OWNER_PHONE+'">اتصل <span class="ltr">'+OWNER_PHONE+'</span></a>'+
+      '<a class="alt" target="_blank" rel="noopener" href="'+wa(OWNER_PHONE)+'?text='+encodeURIComponent("أهلًا، أريد أجدد اشتراك "+shop.name)+'">راسلني بالواتساب</a></div></div>';
+    return}
+  {const old=document.getElementById("subCorner");if(old)old.remove();
+   const sc=document.createElement("div");sc.id="subCorner";sc.className="sub-corner "+(active?(left<=3?"warn":"ok"):"bad");
+   sc.innerHTML=active?(shop.sub_days?'<div>اشتراكك '+shop.sub_days+' يوم</div>':'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'+(left<=3?'<div>قرب يخلص، جدده</div>':'')
+     :'<div><b>انتهى اشتراكك</b></div><div>أرجو التجديد</div><div class="ltr">'+OWNER_PHONE+'</div>';
+   document.querySelector("header").appendChild(sc)}
+  app.innerHTML=
     '<h2>رابط الحجز ل'+w.people+'</h2><p class="hint">دزه ل'+w.people+' أو حطه بالانستغرام، وكل واحد يحجز منه.</p>'+
     '<div class="row"><button class="alt" id="cpy">نسخ '+w.link+'</button><a class="alt" id="shr" target="_blank" rel="noopener">شارك بالواتساب</a></div>'+
-    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul>'+
+    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul>'+
     '<h2>صورتك الرئيسية</h2><div class="me-photo"><img id="myPhoto" alt="صورتك"><div class="row"><button class="alt" id="upMe">'+(shop.photo?"غيّر الصورة":"أضف صورتك")+'</button></div></div>'+
     '<p class="hint">تطلع كبيرة فوق بصفحة '+w.peopleAll+'، ويكدرون يفتحوها. من تختار الصورة، تكدر تكبّرها وتحرّكها قبل الحفظ.</p>'+
     '<h2>صورك الشخصية</h2><p class="hint">أضف لحد 3 صور إلك، وتطلع ل'+w.peopleAll+'.</p>'+
@@ -535,6 +557,44 @@ async function ownerHome(shopId,shop,pin){
       if(D<x.day){alert("يوم الاستلام لازم يكون بعد يوم الموعد.");return}
       save(D+(T?" "+T:""))};
     if(x.ready)d.querySelector(".rX").onclick=()=>save("")}
+  async function walkIn(){
+    const box=$("walk");
+    if(box.innerHTML){box.innerHTML="";return}
+    const med=(KIND==="doctor"||KIND==="dentist"),ag=AGE_KINDS.includes(KIND);
+    box.innerHTML='<div class="walk-box"><b>حجز يوم '+esc(fmt(day))+'</b><p class="hint">اختار الساعة الفارغة:</p><div class="slots" id="wSlots"><span class="empty">جاري التحميل…</span></div>'+
+      '<label for="wN">الاسم</label><input id="wN">'+
+      (ag?'<label for="wA">العمر</label><input id="wA" inputmode="numeric" dir="ltr" maxlength="3">':'')+
+      (med?'<label for="wC">نوع المرض أو سبب المراجعة</label><input id="wC" maxlength="80">':'')+
+      '<label for="wP">رقم التلفون</label><input id="wP" inputmode="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
+      '<div class="row"><button class="btn" id="wGo">احجز</button><button class="alt" id="wX">رجوع</button></div><div id="wMsg"></div></div>';
+    $("wX").onclick=()=>{box.innerHTML=""};
+    let ws=null,info=[];
+    try{info=(await rpc("slots_info",{p_shop:shopId,p_day:day}))||[]}catch(e){$("wSlots").innerHTML=note("bad","خلل بالاتصال.");return}
+    const taken={};info.forEach(x=>taken[x.slot_time]=1);
+    const now=nowHM();
+    function drawW(){const sb=$("wSlots");sb.innerHTML="";let any=false;
+      allSlots().forEach(t=>{if(taken[t]!==undefined)return;if(KIND!=="gym"&&day===today()&&t<=now)return;any=true;
+        const b=document.createElement("button");b.className="slot";b.textContent=t12(t);b.setAttribute("aria-pressed",t===ws);
+        b.onclick=()=>{ws=t;drawW()};sb.appendChild(b)});
+      if(!any)sb.innerHTML='<span class="empty">ماكو أوقات فارغة بهذا اليوم.</span>'}
+    drawW();
+    $("wGo").onclick=async()=>{
+      const msg=$("wMsg"),name=$("wN").value.trim(),phone=$("wP").value.trim();
+      const age=ag?$("wA").value.trim():"",cm=med?$("wC").value.trim():"";
+      if(!ws){msg.innerHTML=note("bad","اختار الساعة أولًا.");return}
+      const e1=nameErr(name)||(age&&(!/^\d+$/.test(age)||+age<1||+age>120)?"العمر لازم يكون رقم بين 1 و120.":"")||(phone?phoneErr(phone):"");
+      if(e1){msg.innerHTML=note("bad",e1);return}
+      const btn=$("wGo");btn.disabled=true;
+      let t=ws;if(KIND==="gym")t=t.slice(0,3)+"-"+Math.random().toString(36).slice(2,7);
+      try{const res=await rpc("book",{p_shop:shopId,p_day:day,p_time:t,p_name:name,p_phone:phone||"-"});
+        if(res==="ok"){
+          if(cm)await rpc("set_complaint",{p_shop:shopId,p_day:day,p_time:t,p_phone:phone||"-",p_text:cm}).catch(()=>{});
+          if(age)await rpc("set_age",{p_shop:shopId,p_day:day,p_time:t,p_phone:phone||"-",p_age:+age}).catch(()=>{});
+          alert("انحجز موعد "+name+" الساعة "+t12(ws)+".");box.innerHTML="";draw();return}
+        msg.innerHTML=note("bad",res==="taken"?"هذا الوقت انحجز هسه، اختار وقت ثاني.":res==="closed"?"هذا اليوم مغلق.":"الحجز متوقف، تأكد من الاشتراك.");
+      }catch(e){msg.innerHTML=note("bad","ما انحجز، خلل بالاتصال.")}
+      btn.disabled=false};
+  }
   async function draw(){
     try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
     daysBar($("days"),day,closed,d=>{day=d;draw()});
@@ -544,13 +604,15 @@ async function ownerHome(shopId,shop,pin){
     $("tog").onclick=async()=>{
       if(!isClosed&&!confirm("تغلق يوم "+fmt(day)+"؟ "+w.peopleAll+" ما راح يكدرون يحجزون بيه."))return;
       await rpc("owner_toggle_day",{p_shop:shopId,p_pin:pin,p_day:day}).catch(()=>{});draw()};
+    $("walkBtn").hidden=isClosed;$("walk").innerHTML="";
+    $("walkBtn").onclick=()=>walkIn();
     const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let rows=[];try{rows=(await rpc("barber_bookings",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال. حدّث الصفحة.</li>';return}
     rows=rows.filter(x=>x.status!=="cancel");
     $("cnt").textContent=rows.length+" موعد، خلص منهم "+rows.filter(x=>x.status==="done").length;
     ul.innerHTML=rows.length?"":'<li class="empty">ماكو مواعيد بهذا اليوم بعد.</li>';
     rows.forEach(x=>{const li=document.createElement("li");
-      li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span>';
+      li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+(x.phone&&x.phone!=="-"?'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small>':'<small>حجز من يم '+(HEADW[KIND]||"المحل")+'</small>')+'</span>';
       const row=document.createElement("span");row.className="row";row.style.marginTop="0";
       if(isClosed){const n=document.createElement("a");n.className="alt";n.textContent="بلّغه بالواتساب";n.target="_blank";n.rel="noopener";
         n.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، نعتذر منك، "+w.place+" مغلق يوم "+fmt(day)+" وموعدك كان الساعة "+t12(x.time)+". تكدر تحجز موعد جديد من هذا الرابط: "+cLink);
