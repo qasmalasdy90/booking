@@ -223,6 +223,10 @@ header{padding-top:34px!important}
 .stats div{background:#fff;border-radius:10px;padding:8px;text-align:center;display:flex;flex-direction:column}
 .stats b{font-size:1.3rem;color:#14306B}.stats small{font-size:.72rem}
 textarea{width:100%;box-sizing:border-box;font:inherit;border-radius:10px;border:1px solid #c9d8da;padding:8px}
+header #hPhoto{position:absolute!important;top:8px;right:8px;width:62px;height:62px;z-index:3;border-width:2px}
+header{padding-top:22px!important}
+header>div:not(.waves){padding:0 70px}
+.sub-corner{top:3px!important;left:4px!important}
 </style>
 </head>
 <body>
@@ -243,8 +247,22 @@ const WORDS={
   shop:{page:"صفحة الزبون",you:"اسمك",yourPhone:"رقم تلفونك",people:"زبائنك",peopleAll:"الزبائن",link:"رابط الزبائن",gal:"صور من شغل المحل",galOwn:"صور من شغلك",galHint:"أضف صور قصاتك أو شغلك (لحد 12 صورة)، وتطلع للزبائن.",nameHint:"اسمك راح يبين للزبائن على الساعة المحجوزة، ورقمك ما يبين لأحد.",ph:"مثلًا: علي",place:"المحل"},
   doctor:{page:"صفحة المريض",you:"اسم المريض",yourPhone:"رقم تلفون المريض",people:"مرضاك",peopleAll:"المرضى",link:"رابط المرضى",gal:"صور العيادة",galOwn:"صور العيادة",galHint:"أضف صور العيادة (لحد 12 صورة)، وتطلع للمرضى.",nameHint:"اسمك راح يبين للمرضى على الساعة المحجوزة، ورقمك ما يبين لأحد.",ph:"مثلًا: محمد",place:"العيادة"}
 };
-const W=k=>WORDS[(k==="doctor"||k==="dentist")?"doctor":"shop"];
-const OWNERW={barber:"الحلاق",doctor:"الدكتور",dentist:"طبيب الأسنان",salon:"الصالون",beauty:"مركز التجميل",sport:"صاحب الملعب",photo:"المصور",tailor:"الخياط",hall:"صاحب القاعة",lawyer:"المحامي",mobile:"صاحب المحل",gym:"صاحب النادي",shop:"صاحب المحل"};
+const WX={
+  barber:{galHint:"أضف صور قصاتك وحلاقاتك (لحد 12 صورة)، وتطلع للزبائن.",place:"المحل"},
+  dentist:{place:"العيادة"},
+  salon:{page:"صفحة الزبونة",you:"اسمج",yourPhone:"رقم تلفونج",people:"زبوناتج",peopleAll:"الزبونات",link:"رابط الزبونات",gal:"صور من شغل الصالون",galOwn:"صور من شغلج",galHint:"أضيفي صور تسريحاتج وشغلج (لحد 12 صورة)، وتطلع للزبونات.",ph:"مثلًا: زينب",place:"الصالون"},
+  beauty:{gal:"صور من شغل المركز",galOwn:"صور من شغل المركز",galHint:"أضف صور من شغل المركز (لحد 12 صورة)، وتطلع للزبائن.",place:"المركز"},
+  sport:{gal:"صور الملعب",galOwn:"صور الملعب",galHint:"أضف صور الملعب (لحد 12 صورة)، وتطلع للزبائن.",place:"الملعب"},
+  photo:{gal:"صور من تصوير المصور",galOwn:"صور من تصويرك",galHint:"أضف صور من تصويرك (لحد 12 صورة)، وتطلع للزبائن.",place:"الاستوديو"},
+  tailor:{gal:"صور من شغل الخياط",galOwn:"صور من خياطتك",galHint:"أضف صور من خياطتك وتفصيلك (لحد 12 صورة)، وتطلع للزبائن.",place:"محل الخياطة"},
+  hall:{gal:"صور القاعة",galOwn:"صور القاعة",galHint:"أضف صور القاعة (لحد 12 صورة)، وتطلع للزبائن.",place:"القاعة"},
+  lawyer:{page:"صفحة الموكّل",people:"موكّليك",peopleAll:"الموكّلين",link:"رابط الموكّلين",gal:"صور المكتب",galOwn:"صور المكتب",galHint:"أضف صور مكتبك (لحد 12 صورة)، وتطلع للموكّلين.",place:"المكتب"},
+  mobile:{gal:"صور من شغل المحل",galOwn:"صور من شغلك",galHint:"أضف صور من تصليحاتك وشغلك (لحد 12 صورة)، وتطلع للزبائن.",place:"المحل"},
+  gym:{page:"صفحة المشترك",you:"اسمك",people:"مشتركينك",peopleAll:"المشتركين",link:"رابط المشتركين",gal:"صور النادي",galOwn:"صور النادي",galHint:"أضف صور النادي والأجهزة (لحد 12 صورة)، وتطلع للمشتركين.",place:"النادي"}};
+const W=k=>{k=k||"barber";const b=WORDS[(k==="doctor"||k==="dentist")?"doctor":"shop"];
+  const o=Object.assign({},b,WX[k]||{});o.med=(k==="doctor"||k==="dentist");
+  o.nameHint=(k==="salon"?"اسمج ورقمج ما يبينون لأحد، تشوفهم بس صاحبة الصالون.":"اسمك ورقمك ما يبينون لأحد، يشوفهم بس "+(OWNERW[k]||"صاحب المحل")+".");return o};
+const OWNERW={barber:"الحلاق",doctor:"الدكتور",dentist:"طبيب الأسنان",salon:"صاحبة الصالون",beauty:"مركز التجميل",sport:"صاحب الملعب",photo:"المصور",tailor:"الخياط",hall:"صاحب القاعة",lawyer:"المحامي",mobile:"صاحب المحل",gym:"صاحب النادي",shop:"صاحب المحل"};
 function phoneErr(p){const d=String(p||"").replace(/\D/g,"");
   if(!d)return "اكتب رقم الهاتف.";
   if(!/^07/.test(d))return "رقم الهاتف لازم يبدي بـ 07.";
@@ -280,8 +298,30 @@ function cInfoBox(kind,w){const L=CINFO[kind]||CINFO.shop,p=w.peopleAll==="ال�
  const d=document.createElement("div");d.className="contact cinfo";d.style.textAlign="start";
  d.innerHTML='<b>شنو نقدم لك بهذا البرنامج؟</b><ul style="margin:8px 0 0;padding-inline-start:20px;line-height:1.9">'+items.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>';return d}
 const HEADW={barber:"الحلاق",doctor:"الدكتور",dentist:"طبيب الأسنان",salon:"الصالون النسائي",beauty:"مركز التجميل",sport:"الملعب",photo:"المصور",tailor:"الخياط",hall:"القاعة",lawyer:"المحامي",mobile:"محل صيانة الموبايلات",gym:"نادي الجيم",shop:"المحل"};
+const ABOUTX={barber:"اكتب عن شغلك، مثل أنواع القصات والحلاقة اللي تسويها.",doctor:"اكتب عن نفسك، مثل اختصاصك، ووين درست، وشهاداتك.",dentist:"اكتب عن نفسك، مثل اختصاصك، ووين درست، وشهاداتك.",
+salon:"اكتبي عن شغلج، مثل الميش والصبغ والتسريحات اللي تسوينها.",beauty:"اكتب عن خدماتك وخبرتك.",sport:"اكتب عن ملعبك ومميزاته.",photo:"اكتب عن نوع التصوير اللي تسويه وخبرتك.",
+tailor:"اكتب عن مهارتك، مثل أنواع الخياطة اللي تسويها.",hall:"اكتب عن قاعتك، مثل كم شخص تستوعب وشنو بيها.",lawyer:"اكتب عن اختصاصك وخبرتك بالقضايا.",
+mobile:"اكتب عن شغلك، مثل الصيانات اللي تسويها.",gym:"اكتب عن ناديك، مثل الأجهزة والمدربين.",shop:"اكتب عن محلك وشنو يبيع."};
+const SVCX={barber:["خدماتك وأسعارك","حلاقة 5 آلاف"],doctor:["الكشفية والأسعار","الكشفية 15 ألف"],dentist:["الكشفية والأسعار","الكشفية 10 آلاف، حشوة 25 ألف"],
+salon:["خدماتك وأسعارك","سشوار 10 آلاف"],beauty:["خدماتك وأسعارك","تنظيف بشرة 25 ألف"],sport:["أسعار الملعب","الساعة 30 ألف"],photo:["خدماتك وأسعارك","جلسة تصوير 50 ألف"],
+tailor:["خدماتك وأسعارك","خياطة دشداشة 25 ألف"],hall:["أسعار القاعة","فترة الليل مليون دينار"],lawyer:["الاستشارة والأسعار","الاستشارة 25 ألف"],
+mobile:["خدماتك وأسعارك","تبديل شاشة من 40 ألف"],gym:["أسعار الاشتراك","الشهر 35 ألف"],shop:["خدماتك وأسعارك","المنتج والسعر"]};
 const TYPES={barber:"حلاق",doctor:"دكتور",dentist:"طبيب أسنان",salon:"صالون نسائي",beauty:"مركز تجميل",sport:"رياضة",photo:"مصور",tailor:"خياط",hall:"قاعة مناسبات",lawyer:"محامي",mobile:"صيانة موبايلات",gym:"نادي جيم",shop:"محل"};
 const INFO={barber:"حجز مواعيد أونلاين للحلاقين.",doctor:"حجز مواعيد أونلاين للمرضى داخل العيادة.",dentist:"حجز مواعيد أونلاين للمرضى عند طبيب الأسنان.",salon:"حجز مواعيد أونلاين للصالون النسائي.",beauty:"حجز مواعيد أونلاين لمركز التجميل.",sport:"حجز ساعات الملعب أونلاين.",photo:"حجز مواعيد التصوير أونلاين.",tailor:"حجز مواعيد أونلاين عند الخياط للقياس والاستلام.",gym:"اشتراك أونلاين بالنادي، لشهر أو 3 أو 6 أشهر أو سنة، ويبدأ من اليوم اللي تختاره.",mobile:"حجز موعد أونلاين لتصليح وصيانة الموبايل.",lawyer:"حجز موعد استشارة قانونية أونلاين عند المحامي.",hall:"حجز القاعة أونلاين للأعراس والمناسبات، بفترة الظهر أو فترة الليل.",shop:"حجز مواعيد أونلاين للمحل."};
+const FEM_OWNER=[["صورتك الرئيسية","صورتج الرئيسية"],["صورك الشخصية","صورج الشخصية"],["أضف صورتك","أضيفي صورتج"],["غيّر الصورة","غيّري الصورة"],["أضف لحد 3 صور إلك","أضيفي لحد 3 صور إلج"],["أضف صورة إلك","أضيفي صورة إلج"],["أضف صورة","أضيفي صورة"],
+ ["عن نفسك","عن نفسج"],["اكتب أسعارك إنت","اكتبي أسعارج إنتِ"],["عطلتك الثابتة","عطلتج الثابتة"],["عطلتك:","عطلتج:"],["ما عندك عطلة ثابتة","ما عندج عطلة ثابتة"],["اضغط حتى تغيّرها","اضغطي حتى تغيّرينها"],
+ ["اختار الأيام اللي ما تداوم بيها","اختاري الأيام اللي ما تداومين بيها"],["دوامك","دوامج"],["ما حددت الدوام","ما حددتي الدوام"],["حدد دوامك","حددي دوامج"],["إذا تريد تداوم بيه، حدد","إذا تريدين تداومين بيه، حددي"],["يوم عطلتك","يوم عطلتج"],
+ ["انتهى اشتراكك","انتهى اشتراكج"],["اشتراكك","اشتراكج"],["لديك","لديج"],["تگدر تشوفها","تگدرين تشوفينها"],["حتى ترجع تشتغل","حتى ترجع تشتغل"],["دزه ل","دزيه ل"],["أو حطه بالانستغرام","أو حطيه بالانستغرام"],
+ ["عندك صفحة خاصة برقم سري تشوف بيها كل مواعيدك، وتضيف صورتك وصور شغلك، وتغلق","عندج صفحة خاصة برقم سري تشوفين بيها كل مواعيدج، وتضيفين صورتج وصور شغلج، وتغلقين"],
+ ["من تختار الصورة، تكدر تكبّرها وتحرّكها","من تختارين الصورة، تگدرين تكبّرينها وتحرّكينها"],["اختار الساعة","اختاري الساعة"],["ذكّره بالواتساب","ذكّريها بالواتساب"],["بلّغه","بلّغيها"],["شيله","شيليها"],["اطلع من الحساب","اطلعي من الحساب"],["جاه للمحل","جت للصالون"],["مواعيدك","مواعيدج"]];
+const FEM_CUST=[["احجز موعدك","احجزي موعدج"],["تحجز من تلفونك","تحجزين من تلفونج"],["تشوف الأوقات الفارغة والأيام المتاحة قدامك","تشوفين الأوقات الفارغة والأيام المتاحة قدامج"],["تختار يومك","تختارين يومج"],
+ ["تكدر تغيّر موعدك أو تلغيه","تگدرين تغيّرين موعدج أو تلغينه"],["شنو نقدم لك","شنو نقدم إلج"],["اختار اليوم","اختاري اليوم"],["اختار الساعة","اختاري الساعة"],["احجز الموعد","احجزي الموعد"],["هذا حجزك","هذا حجزج"],["حجزك","حجزج"],
+ ["لقد حجزت موعدك","لقد حجزتي موعدج"],["تغيير الموعد","تغيير الموعد"],["موعدك","موعدج"],["تگدر تحجز","تگدرين تحجزين"],["تكدر تحجز","تگدرين تحجزين"],["اسمك","اسمج"],["سجّلني","سجّليني"],["انسجلت","انسجلتي"],["اختار يوم ثاني","اختاري يوم ثاني"],["اختار وقت ثاني","اختاري وقت ثاني"],["اضغط","اضغطي"],["نشوفك","نشوفج"],["يتواصلون وياك","يتواصلون وياج"],["تريده","تريدينه"]];
+function femApply(root,list){const ar="\u0600-\u06FF";
+  const rx=list.map(([a,b])=>[new RegExp("(^|[^"+ar+"])"+a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?=$|[^"+ar+"])","g"),b]);
+  const fix=n=>{let t=n.nodeValue,o=t;rx.forEach(([r,b])=>{t=t.replace(r,(m,p)=>p+b)});if(t!==o)n.nodeValue=t};
+  const walk=el=>{const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())fix(n)};
+  walk(root);new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(n=>{if(n.nodeType===3)fix(n);else if(n.nodeType===1)walk(n)});if(m.type==="characterData")fix(m.target)})).observe(root,{childList:true,subtree:true,characterData:true})}
 const dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const app=document.getElementById("app");
 const q=new URLSearchParams(location.search);
@@ -396,7 +436,7 @@ async function customer(shopId){
     '<div id="form"><label for="n">'+w.you+'</label><input id="n" autocomplete="name" placeholder="'+w.ph+'">'+
     '<p class="hint">'+w.nameHint+'</p>'+
     (AGE_KINDS.includes(shop.kind)?'<label for="ag">'+(w.peopleAll==="المرضى"?"عمر المريض":"العمر")+'</label><input id="ag" inputmode="numeric" dir="ltr" maxlength="3" placeholder="مثلًا: 35">':'')+
-    ((shop.kind==="doctor"||shop.kind==="dentist")?'<label for="cm">نوع المرض أو سبب المراجعة</label><input id="cm" maxlength="80" placeholder="'+(shop.kind==="dentist"?"مثلًا: ألم سن، تنظيف، تقويم":"مثلًا: قلب، صدرية، باطنية")+'">':'')+
+    ((shop.kind==="doctor"||shop.kind==="dentist")?'<label for="cm">نوع المرض أو سبب المراجعة</label><p class="hint">اكتب بكلامك شنو يوجعك أو ليش جاي.</p><input id="cm" maxlength="120" placeholder="'+(shop.kind==="dentist"?"مثلًا: ألم سن، حشوة، قلع، تنظيف، تقويم، تبييض، تركيب، لثة، مراجعة":"مثلًا: قلب، صدرية، باطنية، مفاصل، ألم ظهر، عظام، سكر، ضغط، جلدية، أطفال، نسائية، عيون، أنف وأذن وحنجرة، أعصاب، مراجعة")+'">':'')+
     '<label for="p">'+w.yourPhone+'</label><input id="p" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
     '<button class="btn" id="go">احجز الموعد</button><div id="msg"></div></div>'+
     '<div id="gal"></div>';
@@ -434,6 +474,9 @@ async function customer(shopId){
   async function draw(){
     try{SCHED=await rpc("shop_sched",{p_shop:shopId})}catch(e){}
     const cl=closed.concat(offList());
+    {let bc=document.getElementById("bkCorner");if(!bc){bc=document.createElement("div");bc.id="bkCorner";bc.className="sub-corner";document.querySelector("header").appendChild(bc)}
+     const n=bookedOn(day),s=daySet(day);
+     bc.innerHTML='<div>'+(day===today()?"حجوزات اليوم":"حجوزات "+esc(fmt(day)))+'</div><div><b>'+n+(s?' من '+s.cnt:'')+' حجز</b></div>'}
     daysBar($("days"),day,cl,d=>{day=d;slot=null;slotsOpen=false;$("slotInfo").innerHTML="";draw()});
     const isClosed=cl.includes(day);$("full").innerHTML="";
     $("closedNote").innerHTML=isClosed?note("bad",(isOff(day)?"هذا يوم عطلة المحل.":"المحل مغلق بهذا اليوم.")+" اختار يوم ثاني."):"";
@@ -447,7 +490,7 @@ async function customer(shopId){
     allSlots(day).forEach(t=>{const b=document.createElement("button");b.className="slot";b.textContent=t12(t);
       const isMine=mine&&mine.day===day&&mine.time===t;
       if(isMine){b.classList.add("mine");b.innerHTML=esc(t12(t))+"<small>حجزك</small>";b.onclick=()=>slotInfo(t,mine.name,true)}
-      else if(taken[t]!==undefined){b.classList.add("taken");b.setAttribute("aria-label",t12(t)+" محجوز");b.onclick=()=>slotInfo(t,taken[t],false)}
+      else if(taken[t]!==undefined){b.classList.add("taken");b.setAttribute("aria-label",t12(t)+" محجوز");b.onclick=()=>slotInfo(t,"",false)}
       else if(KIND!=="gym"&&day===today()&&t<=now){b.disabled=true}
       else{b.setAttribute("aria-pressed",t===slot);b.onclick=()=>{slot=t;$("slotInfo").innerHTML="";draw()}}
       box.appendChild(b)});
@@ -478,7 +521,7 @@ async function customer(shopId){
   }
   function slotInfo(t,name,isMine){
     const el=$("slotInfo");
-    el.innerHTML='<div class="note '+(isMine?"good":"")+'">'+(isMine?"هذا حجزك":"محجوز")+" باسم "+esc(name)+"، يوم "+esc(fmt(day))+" الساعة "+esc(t12(t))+
+    el.innerHTML='<div class="note '+(isMine?"good":"")+'">'+(isMine?"هذا حجزك باسم "+esc(name):"هذا الوقت محجوز")+"، يوم "+esc(fmt(day))+" الساعة "+esc(t12(t))+
       (isMine?'<div class="row"><button class="alt" id="chg2">تغيير الموعد</button><button class="alt danger" id="cxl2">إلغاء الحجز</button></div>':"")+'</div>';
     if(isMine){$("chg2").onclick=startChange;$("cxl2").onclick=cancelMine}
   }
@@ -494,13 +537,16 @@ async function customer(shopId){
     if(me.length)put(me,"gm");
     if(work.length)put(work,"g");
   }
+  if(KIND==="salon"){femApply(app,FEM_CUST);femApply(document.querySelector("header"),FEM_CUST)}
   showMine();draw();gallery();
-  if(SCHED&&SCHED.services&&SCHED.services.trim())$("svc").innerHTML='<div class="svc-box"><b>الخدمات والأسعار</b>'+
+  const abH=(SCHED&&SCHED.about&&SCHED.about.trim())?'<div class="svc-box"><b>'+(KIND==="salon"?"عنّي":"عن "+esc(HEADW[KIND]||"المحل"))+'</b>'+SCHED.about.split("\n").filter(x=>x.trim()).map(x=>'<div>'+esc(x)+'</div>').join("")+'</div>':"";
+  $("svc").innerHTML=abH;
+  if(SCHED&&SCHED.services&&SCHED.services.trim())$("svc").innerHTML=abH+'<div class="svc-box"><b>'+(KIND==="doctor"||KIND==="dentist"?"الكشفية والأسعار":"الخدمات والأسعار")+'</b>'+
     SCHED.services.split("\n").filter(x=>x.trim()).map(x=>'<div>'+esc(x)+'</div>').join("")+'</div>';
 
   app.insertBefore(cInfoBox(shop.kind||"barber",w),app.firstChild);
   if(shop.phone){const cb=document.createElement("div");cb.className="contact";
-    cb.innerHTML='للتواصل ويا '+esc(shop.name)+'<br><a class="ltr" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a> · <a href="'+wa(shop.phone)+'" target="_blank" rel="noopener">واتساب</a>';
+    cb.innerHTML='للتواصل مع '+esc((()=>{const hw=HEADW[shop.kind||"barber"]||"",bare=hw.replace(/^ال/,"");return (!hw||shop.name.startsWith(hw)||shop.name.startsWith(bare))?shop.name:hw+" "+shop.name})())+'<br><a class="ltr" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a> · <a href="'+wa(shop.phone)+'" target="_blank" rel="noopener">واتساب</a>';
     app.appendChild(cb)}
   $("go").onclick=async()=>{
     const name=$("n").value.trim(),phone=$("p").value.trim(),msg=$("msg");
@@ -575,8 +621,9 @@ async function ownerHome(shopId,shop,pin){
     '<h2>رابط الحجز ل'+w.people+'</h2><p class="hint">دزه ل'+w.people+' أو حطه بالانستغرام، وكل واحد يحجز منه.</p>'+
     '<div class="row"><button class="alt" id="cpy">نسخ '+w.link+'</button><a class="alt" id="shr" target="_blank" rel="noopener">شارك بالواتساب</a></div>'+
     '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><div id="hrs"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul><div id="wait"></div>'+
-    '<h2>عطلتك الثابتة</h2><p class="hint">اختار الأيام اللي ما تداوم بيها كل أسبوع، وما ينحجز بيها.</p><div class="offs" id="offs"></div><button class="alt" id="offSave">احفظ أيام العطلة</button>'+
-    '<h2>خدماتك وأسعارك</h2><p class="hint">كل خدمة بسطر، مثلًا: حلاقة 5 آلاف. تطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="svcT" rows="4"></textarea><button class="alt" id="svcSave">احفظ الخدمات</button>'+
+    '<h2>عطلتك الثابتة</h2><details class="hrs-box" id="offD"><summary id="offSum"></summary><p class="hint">اختار الأيام اللي ما تداوم بيها كل أسبوع، وما ينحجز بيها.</p><div class="offs" id="offs"></div><button class="alt" id="offSave">احفظ أيام العطلة</button></details>'+
+    '<h2>عن نفسك</h2><p class="hint">'+(ABOUTX[KIND]||ABOUTX.shop)+' يطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="abT" rows="4"></textarea><button class="alt" id="abSave">احفظ</button>'+
+    '<h2>'+(SVCX[KIND]||SVCX.shop)[0]+'</h2><p class="hint">اكتب أسعارك إنت، كل شي بسطر. تطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="svcT" rows="4"></textarea><button class="alt" id="svcSave">احفظ الخدمات</button>'+
     '<h2>الإحصائيات</h2><div id="stats" class="stats"></div>'+
     '<h2>صورتك الرئيسية</h2><div class="me-photo"><img id="myPhoto" alt="صورتك"><div class="row"><button class="alt" id="upMe">'+(shop.photo?"غيّر الصورة":"أضف صورتك")+'</button></div></div>'+
     '<p class="hint">تطلع كبيرة فوق بصفحة '+w.peopleAll+'، ويكدرون يفتحوها. من تختار الصورة، تكدر تكبّرها وتحرّكها قبل الحفظ.</p>'+
@@ -586,7 +633,7 @@ async function ownerHome(shopId,shop,pin){
     '<button class="alt" id="upG">أضف صورة</button><div id="gMsg"></div><div class="gallery" id="g" style="margin-top:10px"></div>'+
     '<div class="info" style="margin-top:24px"><h2>شنو يقدم النظام؟</h2>'+
     '<p>'+(INFO[shop.kind]||INFO.barber)+'</p>'+
-    '<p>'+(W(shop.kind)===WORDS.doctor?"المريض":"الزبون")+' يحجز من تلفونه بدون اتصال وبدون انتظار، ويشوف الأوقات الفارغة قدامه.</p>'+
+    '<p>'+(W(shop.kind).med?"المريض":(KIND==="salon"?"الزبونة":"الزبون"))+' يحجز من تلفونه بدون اتصال وبدون انتظار، ويشوف الأوقات الفارغة قدامه.</p>'+
     '<p>عندك صفحة خاصة برقم سري تشوف بيها كل مواعيدك، وتضيف صورتك وصور شغلك، وتغلق أيام العطل.</p></div>'+
     contact("للاستفسار والتواصل ولتجديد الاشتراك")+
     '<button class="alt" id="out" style="margin-top:24px">اطلع من الحساب</button>';
@@ -638,7 +685,7 @@ async function ownerHome(shopId,shop,pin){
     box.innerHTML='<div class="walk-box"><b>حجز يوم '+esc(fmt(day))+'</b><p class="hint">اختار الساعة الفارغة:</p><div class="slots" id="wSlots"><span class="empty">جاري التحميل…</span></div>'+
       '<label for="wN">الاسم</label><input id="wN">'+
       (ag?'<label for="wA">العمر</label><input id="wA" inputmode="numeric" dir="ltr" maxlength="3">':'')+
-      (med?'<label for="wC">نوع المرض أو سبب المراجعة</label><input id="wC" maxlength="80">':'')+
+      (med?'<label for="wC">نوع المرض أو سبب المراجعة</label><input id="wC" maxlength="120">':'')+
       '<label for="wP">رقم التلفون</label><input id="wP" inputmode="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
       '<div class="row"><button class="btn" id="wGo">احجز</button><button class="alt" id="wX">رجوع</button></div><div id="wMsg"></div></div>';
     $("wX").onclick=()=>{box.innerHTML=""};
@@ -721,9 +768,13 @@ async function ownerHome(shopId,shop,pin){
   }
   function offsUI(){
     const names=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],cur=String((SCHED&&SCHED.off)||"").split(",");
+    const curN=names.filter((n,i)=>cur.includes(String(i)));
+    $("offSum").textContent=(curN.length?"عطلتك: "+curN.join("، "):"ما عندك عطلة ثابتة")+" · اضغط حتى تغيّرها";
     $("offs").innerHTML=names.map((n,i)=>'<label class="off-chip"><input type="checkbox" value="'+i+'"'+(cur.includes(String(i))?" checked":"")+'>'+n+'</label>').join("");
     $("offSave").onclick=async()=>{const v=[...$("offs").querySelectorAll("input:checked")].map(x=>x.value).join(",");
-      try{await rpc("owner_set_off",{p_shop:shopId,p_pin:pin,p_off:v});alert("انحفظت أيام العطلة.");draw()}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+      try{await rpc("owner_set_off",{p_shop:shopId,p_pin:pin,p_off:v});$("offD").open=false;await draw();offsUI()}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+    $("abT").value=(SCHED&&SCHED.about)||"";
+    $("abSave").onclick=async()=>{try{await rpc("owner_set_about",{p_shop:shopId,p_pin:pin,p_text:$("abT").value.slice(0,2000)});alert("انحفظ.")}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
     $("svcT").value=(SCHED&&SCHED.services)||"";
     $("svcSave").onclick=async()=>{try{await rpc("owner_set_services",{p_shop:shopId,p_pin:pin,p_text:$("svcT").value.slice(0,1500)});alert("انحفظت الخدمات.")}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
   }
@@ -771,6 +822,9 @@ async function ownerHome(shopId,shop,pin){
           li.innerHTML='<span class="time">'+(t?esc(hm12(t)):"استلام")+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+'<small>حجز يوم '+esc(fmt(x.day))+' · <a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span><span class="tag ok">استلام</span>';
           ul.appendChild(li)})}}
   }
+  {const cp=$("cpy");if(cp){const rw=cp.closest(".row"),hn=rw.previousElementSibling,hd=hn&&hn.previousElementSibling;
+    [hd,hn,rw].forEach(x=>{if(x)app.appendChild(x)})}}
+  if(KIND==="salon"){femApply(app,FEM_OWNER);femApply(document.querySelector("header"),FEM_OWNER)}
   draw().then(offsUI);loadG();stats();newCheck();setInterval(newCheck,60000);
 }
 
