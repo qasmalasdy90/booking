@@ -187,6 +187,23 @@ const WORDS={
   doctor:{page:"صفحة المريض",you:"اسم المريض",yourPhone:"رقم تلفون المريض",people:"مرضاك",peopleAll:"المرضى",link:"رابط المرضى",gal:"صور العيادة",galOwn:"صور العيادة",galHint:"أضف صور العيادة (لحد 25 صورة)، وتطلع للمرضى.",nameHint:"اسمك راح يبين للمرضى على الساعة المحجوزة، ورقمك ما يبين لأحد.",ph:"مثلًا: محمد",place:"العيادة"}
 };
 const W=k=>WORDS[(k==="doctor"||k==="dentist")?"doctor":"shop"];
+const OWNERW={barber:"الحلاق",doctor:"الدكتور",dentist:"طبيب الأسنان",salon:"الصالون",beauty:"مركز التجميل",sport:"صاحب الملعب",photo:"المصور",tailor:"الخياط",hall:"صاحب القاعة",lawyer:"المحامي",mobile:"صاحب المحل",gym:"صاحب النادي",shop:"صاحب المحل"};
+function phoneErr(p){const d=String(p||"").replace(/\D/g,"");
+  if(!d)return "اكتب رقم الهاتف.";
+  if(!/^07/.test(d))return "رقم الهاتف لازم يبدي بـ 07.";
+  if(d.length<11)return "رقم الهاتف ناقص، لازم يكون 11 رقم. إنت كاتب "+d.length+" بس.";
+  if(d.length>11)return "رقم الهاتف زايد، لازم يكون 11 رقم. إنت كاتب "+d.length+".";
+  return ""}
+function nameErr(n){n=String(n||"").trim();
+  if(!n)return "اكتب الاسم.";
+  if(n.length<2)return "الاسم قصير، اكتبه كامل.";
+  if(/\d/.test(n))return "الاسم بيه أرقام، اكتبه بالحروف بس.";
+  return ""}
+function pinErr(k){k=String(k||"").trim();
+  if(!k)return "اكتب الرقم السري.";
+  if(!/^\d+$/.test(k))return "الرقم السري لازم يكون أرقام بس.";
+  if(k.length<4)return "الرقم السري ناقص، لازم 4 أرقام أو أكثر. إنت كاتب "+k.length+" بس.";
+  return ""}
 const TYPES={barber:"حلاق",doctor:"دكتور",dentist:"طبيب أسنان",salon:"صالون نسائي",beauty:"مركز تجميل",sport:"رياضة",photo:"مصور",tailor:"خياط",hall:"قاعة مناسبات",lawyer:"محامي",mobile:"صيانة موبايلات",gym:"نادي جيم",shop:"محل"};
 const INFO={barber:"حجز مواعيد أونلاين للحلاقين.",doctor:"حجز مواعيد أونلاين للمرضى داخل العيادة.",dentist:"حجز مواعيد أونلاين للمرضى عند طبيب الأسنان.",salon:"حجز مواعيد أونلاين للصالون النسائي.",beauty:"حجز مواعيد أونلاين لمركز التجميل.",sport:"حجز ساعات الملعب أونلاين.",photo:"حجز مواعيد التصوير أونلاين.",tailor:"حجز مواعيد أونلاين عند الخياط للقياس والاستلام.",gym:"اشتراك أونلاين بالنادي، لشهر أو 3 أو 6 أشهر أو سنة، ويبدأ من اليوم اللي تختاره.",mobile:"حجز موعد أونلاين لتصليح وصيانة الموبايل.",lawyer:"حجز موعد استشارة قانونية أونلاين عند المحامي.",hall:"حجز القاعة أونلاين للأعراس والمناسبات، بفترة الظهر أو فترة الليل.",shop:"حجز مواعيد أونلاين للمحل."};
 const dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
@@ -342,7 +359,7 @@ async function customer(shopId){
   $("go").onclick=async()=>{
     const name=$("n").value.trim(),phone=$("p").value.trim(),msg=$("msg");
     if(!slot){msg.innerHTML=note("bad","اختار ساعة الموعد أولًا.");return}
-    if(!name||phone.length<10){msg.innerHTML=note("bad","اكتب اسمك ورقم تلفونك كامل.");return}
+    const ce=nameErr(name)||phoneErr(phone);if(ce){msg.innerHTML=note("bad",ce);return}
     const btn=$("go");btn.disabled=true;
     try{
       if(KIND==="gym")slot=slot.slice(0,3)+"-"+Math.random().toString(36).slice(2,7);
@@ -475,7 +492,7 @@ async function admin(){
 }
 function adminHome(pin){
   const base=location.origin+location.pathname;
-  app.innerHTML='<h2>إضافة محل جديد</h2>'+
+  app.innerHTML='<h2>إضافة مدير ثانوي جديد</h2>'+
     '<label for="an">اسم المحل</label><input id="an" placeholder="اسم صاحب المحل أو اسم المحل">'+
     '<label for="at">نوع المحل</label><select id="at">'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k]+'</option>').join("")+'</select>'+
     '<label for="ap">رقم صاحب المحل</label><input id="ap" inputmode="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
@@ -486,18 +503,20 @@ function adminHome(pin){
     '<button class="alt" id="out" style="margin-top:16px">اطلع من الحساب</button>'+
     '<div class="contact">صاحب إدارة البرنامج: '+esc(OWNER_NAME)+'<br><span class="ltr">'+OWNER_PHONE+'</span></div>';
   $("out").onclick=()=>{store("admin-pin");location.reload()};
+  let allShops=[];
   $("add").onclick=async()=>{
     const n=$("an").value.trim(),p=$("ap").value.trim(),k=$("ak").value.trim(),m=+$("am").value,t=$("at").value;
     const msg=$("msg");
-    if(!n||k.length<4){msg.innerHTML=note("bad","اكتب اسم المحل ورقم سري لصاحب المحل من 4 أرقام أو أكثر.");return}
+    const ae=nameErr(n)||phoneErr(p)||pinErr(k)||(allShops.some(x=>x.barber_pin===k)?"هذا الرقم السري مستخدم لمدير ثانوي ثاني، اختار رقم غيره.":"");
+    if(ae){msg.innerHTML=note("bad",ae);return}
     try{await rpc("admin_add_shop2",{p_pin:pin,p_name:n,p_phone:p,p_barber_pin:k,p_months:m,p_kind:t});
       msg.innerHTML=note("good","انضاف المحل. دز الرابط والرقم السري لصاحب المحل.");
       ["an","ap","ak"].forEach(id=>$(id).value="");draw();
-    }catch(e){msg.innerHTML=note("bad","ما انضاف المحل بسبب خلل بالاتصال.")}
+    }catch(e){msg.innerHTML=note("bad","ما انضاف. السبب: "+String(e.message||e).slice(0,200))}
   };
   async function draw(){
     const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
-    let shops=[];try{shops=(await rpc("admin_shops2",{p_pin:pin}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال.</li>';return}
+    let shops=[];try{shops=allShops=(await rpc("admin_shops2",{p_pin:pin}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال.</li>';return}
     ul.innerHTML=shops.length?"":'<li class="empty">ماكو محلات بعد. أضف أول محل من فوق.</li>';
     shops.forEach(s=>{
       const active=s.expires>=today();
@@ -516,7 +535,7 @@ function adminHome(pin){
         try{await rpc("admin_set_kind",{p_pin:pin,p_shop:s.id,p_kind:nx});draw()}
         catch(e){alert("ما تغيّر النوع. تأكد إنك شغّلت آخر كود بـ Supabase.");sel.value=s.kind||"barber"}};
       row.appendChild(sel);
-      mk("نسخ رابط صاحب المحل",()=>copy(oLink));
+      mk("نسخ رابط "+(OWNERW[s.kind||"barber"]||"صاحب المحل"),()=>copy(oLink));
       mk("دز بالواتساب",()=>{const t="أهلًا، هاي روابط نظام الحجز مال "+s.name+":\n"+w.link+" (حطه بالانستغرام أو دزه ل"+w.people+"): "+cLink+"\nرابط صفحتك: "+oLink+"\nرقمك السري: "+s.barber_pin+
         "\nللاستفسار وتجديد الاشتراك: "+OWNER_NAME+" "+OWNER_PHONE;
         window.open(wa(s.phone)+"?text="+encodeURIComponent(t),"_blank")});
@@ -529,7 +548,8 @@ function adminHome(pin){
       ed.querySelector(".eC").onclick=()=>{ed.hidden=true};
       ed.querySelector(".eS").onclick=async()=>{
         const n=ed.querySelector(".eN").value.trim(),p=ed.querySelector(".eP").value.trim(),k=ed.querySelector(".eK").value.trim();
-        if(!n||k.length<4){alert("اكتب الاسم ورقم سري من 4 أرقام أو أكثر.");return}
+        const ee=nameErr(n)||phoneErr(p)||pinErr(k)||(allShops.some(x=>x.id!==s.id&&x.barber_pin===k)?"هذا الرقم السري مستخدم لمدير ثانوي ثاني، اختار رقم غيره.":"");
+        if(ee){alert(ee);return}
         try{await rpc("admin_edit_shop",{p_pin:pin,p_shop:s.id,p_name:n,p_phone:p,p_barber_pin:k});draw()}
         catch(e){alert("ما انحفظ التعديل. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
       const row2=document.createElement("div");row2.className="row";row2.style.width="100%";
