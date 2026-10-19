@@ -243,6 +243,7 @@ function cInfoBox(kind,w){const L=CINFO[kind]||CINFO.shop,p=w.peopleAll==="ال�
  const items=[L[0]+" أونلاين",p==="المريض"?"تحجز من تلفونك بدون اتصال وبدون انتظار":"تحجز من تلفونك بدون اتصال وبدون انتظار","تشوف الأوقات الفارغة والأيام المتاحة قدامك","تختار يومك من شهر كامل","تكدر تغيّر موعدك أو تلغيه بسهولة"].concat(L.slice(1));
  const d=document.createElement("div");d.className="contact cinfo";d.style.textAlign="start";
  d.innerHTML='<b>شنو نقدم لك بهذا البرنامج؟</b><ul style="margin:8px 0 0;padding-inline-start:20px;line-height:1.9">'+items.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>';return d}
+const HEADW={barber:"الحلاق",doctor:"الدكتور",dentist:"طبيب الأسنان",salon:"الصالون النسائي",beauty:"مركز التجميل",sport:"الملعب",photo:"المصور",tailor:"الخياط",hall:"القاعة",lawyer:"المحامي",mobile:"محل صيانة الموبايلات",gym:"نادي الجيم",shop:"المحل"};
 const TYPES={barber:"حلاق",doctor:"دكتور",dentist:"طبيب أسنان",salon:"صالون نسائي",beauty:"مركز تجميل",sport:"رياضة",photo:"مصور",tailor:"خياط",hall:"قاعة مناسبات",lawyer:"محامي",mobile:"صيانة موبايلات",gym:"نادي جيم",shop:"محل"};
 const INFO={barber:"حجز مواعيد أونلاين للحلاقين.",doctor:"حجز مواعيد أونلاين للمرضى داخل العيادة.",dentist:"حجز مواعيد أونلاين للمرضى عند طبيب الأسنان.",salon:"حجز مواعيد أونلاين للصالون النسائي.",beauty:"حجز مواعيد أونلاين لمركز التجميل.",sport:"حجز ساعات الملعب أونلاين.",photo:"حجز مواعيد التصوير أونلاين.",tailor:"حجز مواعيد أونلاين عند الخياط للقياس والاستلام.",gym:"اشتراك أونلاين بالنادي، لشهر أو 3 أو 6 أشهر أو سنة، ويبدأ من اليوم اللي تختاره.",mobile:"حجز موعد أونلاين لتصليح وصيانة الموبايل.",lawyer:"حجز موعد استشارة قانونية أونلاين عند المحامي.",hall:"حجز القاعة أونلاين للأعراس والمناسبات، بفترة الظهر أو فترة الليل.",shop:"حجز مواعيد أونلاين للمحل."};
 const dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
@@ -463,8 +464,9 @@ async function owner(shopId){
 async function ownerHome(shopId,shop,pin){
   if(shop.sub_days==null){try{shop.sub_days=await rpc("shop_sub_days",{p_shop:shopId})}catch(e){}}
   KIND=shop.kind||"";
-  setHead("صفحة "+shop.name,shop.phone||"",shop.photo);
-  $("sub").className="ltr";
+  setHead(HEADW[shop.kind||"barber"]||"المحل",shop.name,shop.photo);
+  $("sub").innerHTML='<b style="font-size:1.25rem;display:block">'+esc(shop.name)+'</b>'+(shop.phone?'<span class="ltr" style="display:block">'+esc(shop.phone)+'</span>':'');
+  $("sub").className="";
   const active=shop.expires>=today();
   const cLink=location.origin+location.pathname+"?shop="+shopId,w=W(shop.kind);
   let day=today(),closed=[];
@@ -620,7 +622,10 @@ function adminHome(pin){
       const cLink=base+"?shop="+s.id,oLink=base+"?barber="+s.id,w=W(s.kind);
       const li=document.createElement("li");
       li.innerHTML='<span class="who"><b>'+esc(s.name)+'</b><small class="ltr">'+esc(s.phone||"")+'</small>'+
-        '<small>النوع: '+esc(TYPES[s.kind]||"حلاق")+'</small><small>الرقم السري: <span class="ltr">'+esc(s.barber_pin)+'</span></small></span>'+
+        '<small>النوع: '+esc(TYPES[s.kind]||"حلاق")+'</small>'+
+        '<small>الرقم السري: <span class="ltr">'+esc(s.barber_pin)+'</span></small>'+
+        (()=>{const f=SUBS.find(y=>y[0]===s.sub_days),n=Math.round((new Date(s.expires+"T00:00:00")-new Date(today()+"T00:00:00"))/864e5)+1;
+          return '<small>الاشتراك: '+(f?f[1]:(s.sub_days?s.sub_days+" يوم":"—"))+' · '+(n>0?(n===1?"باقي يوم واحد":"باقي "+n+" يوم"):"منتهي")+'</small>'})()+'</span>'+
         '<span class="tag '+(active?"ok":"bad")+'">'+(active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+'</span>';
       const row=document.createElement("div");row.className="row";row.style.width="100%";
       const mk=(t,f)=>{const b=document.createElement("button");b.className="alt";b.textContent=t;b.onclick=f;row.appendChild(b)};
@@ -634,7 +639,7 @@ function adminHome(pin){
         '<label>رقم التلفون</label><input class="eP" inputmode="tel" dir="ltr">'+
         '<label>الرقم السري</label><input class="eK" inputmode="numeric" dir="ltr">'+
         '<label>النوع</label><select class="eT"></select>'+
-        '<label>تجديد الاشتراك (حالياً '+(active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+')</label><select class="eD"><option value="0">بدون تجديد</option>'+subOpts(-1)+'</select>'+
+        '<label>الاشتراك من اليوم (حالياً '+(active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+')</label><select class="eD"><option value="0">بدون تغيير</option>'+subOpts(-1)+'</select>'+
         '<div class="row"><button class="alt eS">احفظ التعديل</button><button class="alt eC">رجوع</button></div>';
       ed.querySelector(".eN").value=s.name;ed.querySelector(".eP").value=s.phone||"";ed.querySelector(".eK").value=s.barber_pin;
       const eT=ed.querySelector(".eT");
@@ -649,7 +654,7 @@ function adminHome(pin){
         const bad=[];
         try{await rpc("admin_edit_shop",{p_pin:pin,p_shop:s.id,p_name:n,p_phone:p,p_barber_pin:k})}catch(e){bad.push("الاسم والتلفون والرقم السري")}
         if(kd!==(s.kind||"barber")){try{await rpc("admin_set_kind",{p_pin:pin,p_shop:s.id,p_kind:kd})}catch(e){bad.push("النوع")}}
-        if(dd>0){try{await rpc("admin_extend_days",{p_pin:pin,p_shop:s.id,p_days:dd})}catch(e){bad.push("تجديد الاشتراك")}}
+        if(dd>0){try{await rpc("admin_set_sub",{p_pin:pin,p_shop:s.id,p_days:dd})}catch(e){bad.push("الاشتراك")}}
         if(bad.length)alert("ما انحفظ: "+bad.join("، ")+". تأكد إنك شغّلت آخر كود بـ Supabase.");
         else alert("انحفظ التعديل.");
         draw()};
