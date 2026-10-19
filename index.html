@@ -210,6 +210,19 @@ header{padding-top:34px!important}
 .days-one .day{min-width:110px}
 .pick-hint{margin:0;font-size:.78rem;opacity:.6;font-weight:400;text-align:center;width:100%}
 .slots-one{justify-content:center}
+.full-box,.svc-box,.new-box,.hrs-box{background:#fff;border:1px solid #d6e4e6;border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:6px}
+.full-box{border-color:#C2364B}
+.new-box{background:#FFF6E0;border-color:#E2A82B;flex-direction:row;align-items:center;justify-content:space-between;font-weight:700}
+.hrs-box summary{cursor:pointer;font-size:.88rem;line-height:1.6}
+.hrs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.hrs-grid label{font-size:.8rem;display:flex;flex-direction:column;gap:3px}
+.offs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.off-chip{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #d6e4e6;border-radius:20px;padding:4px 10px;font-size:.85rem}
+.off-chip input{width:auto;margin:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stats div{background:#fff;border-radius:10px;padding:8px;text-align:center;display:flex;flex-direction:column}
+.stats b{font-size:1.3rem;color:#14306B}.stats small{font-size:.72rem}
+textarea{width:100%;box-sizing:border-box;font:inherit;border-radius:10px;border:1px solid #c9d8da;padding:8px}
 </style>
 </head>
 <body>
@@ -300,7 +313,20 @@ const HALL={"12:00":"فترة الظهر (12 - 5 مساءً)","19:00":"فترة 
 const GYM={"01m":"اشتراك شهر","03m":"اشتراك 3 أشهر","06m":"اشتراك 6 أشهر","12m":"اشتراك سنة"};
 function t12(t){if(KIND==="hall"&&HALL[t])return HALL[t];if(KIND==="gym"&&GYM[t.slice(0,3)])return GYM[t.slice(0,3)];const [h,m]=t.split(":").map(Number);return (h%12||12)+":"+String(m).padStart(2,"0")+" "+(h<12?"صباحًا":"مساءً")}
 function next7(){const a=[];for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()+i);a.push(d)}return a}
-function allSlots(){if(KIND==="hall")return ["12:00","19:00"];if(KIND==="gym")return ["01m","03m","06m","12m"];const o=[],st=KIND==="lawyer"?60:STEP;for(let m=OPEN*60;m<CLOSE*60;m+=st)o.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));return o}
+let SCHED=null;
+function hmMin(t){const[a,b]=String(t).split(":").map(Number);return a*60+(b||0)}
+function minHM(m){return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
+function daySet(d){if(!SCHED)return null;const o=(SCHED.days||[]).find(x=>x.day===d);if(o&&o.cnt>0)return o;
+  if(SCHED.cnt>0&&SCHED.open&&SCHED.close)return {open:SCHED.open,close:SCHED.close,cnt:SCHED.cnt};return null}
+function isOff(d){if(!SCHED||!SCHED.off)return false;if((SCHED.days||[]).some(x=>x.day===d&&x.cnt>0))return false;
+  return String(SCHED.off).split(",").includes(String(new Date(d+"T00:00:00").getDay()))}
+function offList(){return next7().map(ymd).filter(isOff)}
+function bookedOn(d){const c=SCHED&&(SCHED.counts||[]).find(x=>x.day===d);return c?c.n:0}
+function allSlots(d){if(KIND==="hall")return ["12:00","19:00"];if(KIND==="gym")return ["01m","03m","06m","12m"];
+  const s=d?daySet(d):null;
+  if(s){let a=hmMin(s.open),b=hmMin(s.close);if(b<=a)b=24*60;const step=(b-a)/s.cnt,o=[];
+    for(let i=0;i<s.cnt;i++){const m=a+Math.round(i*step/5)*5;if(m<24*60){const t=minHM(m);if(!o.includes(t))o.push(t)}}return o}
+  const o=[],st=KIND==="lawyer"?60:STEP;for(let m=OPEN*60;m<CLOSE*60;m+=st)o.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));return o}
 function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
 function note(cls,text){return '<div class="note '+cls+'">'+esc(text)+'</div>'}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -364,8 +390,9 @@ async function customer(shopId){
     (shop.phone?'<a class="ltr" style="display:block;color:inherit" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a>':'');
   const expNote=shop.active?"":note("bad","انتهى اشتراك صفحة "+(HEADW[shop.kind||"barber"]||"المحل")+" حاليًا. تگدر تحجز عادي، وحجزك يوصله بعد ما يجدد.");
   try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
-  app.innerHTML=expNote+'<div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2>'+
-    '<div id="closedNote"></div><div class="slots" id="slots"></div><div id="slotInfo"></div>'+
+  try{SCHED=await rpc("shop_sched",{p_shop:shopId})}catch(e){SCHED=null}
+  app.innerHTML=expNote+'<div id="svc"></div><div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2>'+
+    '<div id="closedNote"></div><div class="slots" id="slots"></div><div id="full"></div><div id="slotInfo"></div>'+
     '<div id="form"><label for="n">'+w.you+'</label><input id="n" autocomplete="name" placeholder="'+w.ph+'">'+
     '<p class="hint">'+w.nameHint+'</p>'+
     (AGE_KINDS.includes(shop.kind)?'<label for="ag">'+(w.peopleAll==="المرضى"?"عمر المريض":"العمر")+'</label><input id="ag" inputmode="numeric" dir="ltr" maxlength="3" placeholder="مثلًا: 35">':'')+
@@ -405,9 +432,11 @@ async function customer(shopId){
   }
 
   async function draw(){
-    daysBar($("days"),day,closed,d=>{day=d;slot=null;slotsOpen=false;$("slotInfo").innerHTML="";draw()});
-    const isClosed=closed.includes(day);
-    $("closedNote").innerHTML=isClosed?note("bad","المحل مغلق بهذا اليوم. اختار يوم ثاني."):"";
+    try{SCHED=await rpc("shop_sched",{p_shop:shopId})}catch(e){}
+    const cl=closed.concat(offList());
+    daysBar($("days"),day,cl,d=>{day=d;slot=null;slotsOpen=false;$("slotInfo").innerHTML="";draw()});
+    const isClosed=cl.includes(day);$("full").innerHTML="";
+    $("closedNote").innerHTML=isClosed?note("bad",(isOff(day)?"هذا يوم عطلة المحل.":"المحل مغلق بهذا اليوم.")+" اختار يوم ثاني."):"";
     $("form").hidden=isClosed;
     const box=$("slots");box.innerHTML=isClosed?"":'<span class="empty">جاري التحميل…</span>';
     if(isClosed)return;
@@ -415,13 +444,15 @@ async function customer(shopId){
     const taken={};info.forEach(x=>taken[x.slot_time]=x.slot_name);
     const mine=getMine(),now=nowHM();
     box.innerHTML="";
-    allSlots().forEach(t=>{const b=document.createElement("button");b.className="slot";b.textContent=t12(t);
+    allSlots(day).forEach(t=>{const b=document.createElement("button");b.className="slot";b.textContent=t12(t);
       const isMine=mine&&mine.day===day&&mine.time===t;
       if(isMine){b.classList.add("mine");b.innerHTML=esc(t12(t))+"<small>حجزك</small>";b.onclick=()=>slotInfo(t,mine.name,true)}
       else if(taken[t]!==undefined){b.classList.add("taken");b.setAttribute("aria-label",t12(t)+" محجوز");b.onclick=()=>slotInfo(t,taken[t],false)}
       else if(KIND!=="gym"&&day===today()&&t<=now){b.disabled=true}
       else{b.setAttribute("aria-pressed",t===slot);b.onclick=()=>{slot=t;$("slotInfo").innerHTML="";draw()}}
       box.appendChild(b)});
+    const free=[...box.querySelectorAll(".slot")].filter(b=>!b.disabled&&!b.classList.contains("taken")&&!b.classList.contains("mine"));
+    if(!free.length&&KIND!=="gym"){$("form").hidden=true;showFull(cl);if(!box.children.length)return}
     if(!slotsOpen){const all=[...box.querySelectorAll(".slot")];
       let keep=all.find(b=>b.getAttribute("aria-pressed")==="true")||all.find(b=>!b.disabled&&!b.classList.contains("taken")&&!b.classList.contains("mine"))||all.find(b=>!b.disabled)||all[0];
       all.forEach(b=>{if(b!==keep)b.hidden=true});
@@ -429,6 +460,21 @@ async function customer(shopId){
       box.insertAdjacentHTML("afterbegin",'<p class="pick-hint" style="grid-column:1/-1">اضغط على الساعة حتى تشوف كل الساعات</p>');box.classList.add("slots-one")}
     else{box.classList.remove("slots-one");
       box.querySelectorAll(".slot").forEach(b=>{const f=b.onclick;if(f&&!b.classList.contains("taken")&&!b.classList.contains("mine"))b.onclick=()=>{f();slotsOpen=false;draw()}})}
+  }
+  function showFull(cl){
+    const now=nowHM();let near=null;
+    for(const d of next7().map(ymd)){if(d<=day||cl.includes(d))continue;const sl=allSlots(d);
+      if(bookedOn(d)<sl.length){near=d;break}}
+    $("full").innerHTML='<div class="full-box"><b>هذا اليوم مليان، ماكو أوقات فارغة.</b>'+
+      (near?'<button class="btn" id="goNear">أقرب يوم بيه مكان: '+esc(fmt(near))+'</button>':'')+
+      '<p class="hint">أو سجّل بقائمة الانتظار، وإذا انلغى موعد يتواصلون وياك:</p>'+
+      '<input id="wtN" placeholder="اسمك"><input id="wtP" inputmode="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
+      '<button class="alt" id="wtGo">سجّلني بقائمة الانتظار</button><div id="wtMsg"></div></div>';
+    if(near)$("goNear").onclick=()=>{day=near;slot=null;slotsOpen=false;draw()};
+    $("wtGo").onclick=async()=>{const n=$("wtN").value.trim(),ph=$("wtP").value.trim();
+      const e=nameErr(n)||phoneErr(ph);if(e){$("wtMsg").innerHTML=note("bad",e);return}
+      try{await rpc("join_wait",{p_shop:shopId,p_day:day,p_name:n,p_phone:ph});$("wtMsg").innerHTML=note("good","انسجلت بقائمة الانتظار ليوم "+fmt(day)+".")}
+      catch(e){$("wtMsg").innerHTML=note("bad","ما انسجلت، خلل بالاتصال.")}};
   }
   function slotInfo(t,name,isMine){
     const el=$("slotInfo");
@@ -449,6 +495,8 @@ async function customer(shopId){
     if(work.length)put(work,"g");
   }
   showMine();draw();gallery();
+  if(SCHED&&SCHED.services&&SCHED.services.trim())$("svc").innerHTML='<div class="svc-box"><b>الخدمات والأسعار</b>'+
+    SCHED.services.split("\n").filter(x=>x.trim()).map(x=>'<div>'+esc(x)+'</div>').join("")+'</div>';
 
   app.insertBefore(cInfoBox(shop.kind||"barber",w),app.firstChild);
   if(shop.phone){const cb=document.createElement("div");cb.className="contact";
@@ -523,10 +571,13 @@ async function ownerHome(shopId,shop,pin){
    sc.innerHTML=active?(shop.sub_days?'<div>اشتراكك '+shop.sub_days+' يوم</div>':'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'
      :'<div><b>انتهى اشتراكك</b></div><div>أرجو التجديد</div><div class="ltr">'+OWNER_PHONE+'</div>';
    document.querySelector("header").appendChild(sc)}
-  app.innerHTML=
+  app.innerHTML='<div id="newB"></div>'+
     '<h2>رابط الحجز ل'+w.people+'</h2><p class="hint">دزه ل'+w.people+' أو حطه بالانستغرام، وكل واحد يحجز منه.</p>'+
     '<div class="row"><button class="alt" id="cpy">نسخ '+w.link+'</button><a class="alt" id="shr" target="_blank" rel="noopener">شارك بالواتساب</a></div>'+
-    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul>'+
+    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><div id="hrs"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul><div id="wait"></div>'+
+    '<h2>عطلتك الثابتة</h2><p class="hint">اختار الأيام اللي ما تداوم بيها كل أسبوع، وما ينحجز بيها.</p><div class="offs" id="offs"></div><button class="alt" id="offSave">احفظ أيام العطلة</button>'+
+    '<h2>خدماتك وأسعارك</h2><p class="hint">كل خدمة بسطر، مثلًا: حلاقة 5 آلاف. تطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="svcT" rows="4"></textarea><button class="alt" id="svcSave">احفظ الخدمات</button>'+
+    '<h2>الإحصائيات</h2><div id="stats" class="stats"></div>'+
     '<h2>صورتك الرئيسية</h2><div class="me-photo"><img id="myPhoto" alt="صورتك"><div class="row"><button class="alt" id="upMe">'+(shop.photo?"غيّر الصورة":"أضف صورتك")+'</button></div></div>'+
     '<p class="hint">تطلع كبيرة فوق بصفحة '+w.peopleAll+'، ويكدرون يفتحوها. من تختار الصورة، تكدر تكبّرها وتحرّكها قبل الحفظ.</p>'+
     '<h2>صورك الشخصية</h2><p class="hint">أضف لحد 3 صور إلك، وتطلع ل'+w.peopleAll+'.</p>'+
@@ -596,7 +647,7 @@ async function ownerHome(shopId,shop,pin){
     const taken={};info.forEach(x=>taken[x.slot_time]=1);
     const now=nowHM();
     function drawW(){const sb=$("wSlots");sb.innerHTML="";let any=false;
-      allSlots().forEach(t=>{if(taken[t]!==undefined)return;if(KIND!=="gym"&&day===today()&&t<=now)return;any=true;
+      allSlots(day).forEach(t=>{if(taken[t]!==undefined)return;if(KIND!=="gym"&&day===today()&&t<=now)return;any=true;
         const b=document.createElement("button");b.className="slot";b.textContent=t12(t);b.setAttribute("aria-pressed",t===ws);
         b.onclick=()=>{ws=t;drawW()};sb.appendChild(b)});
       if(!any)sb.innerHTML='<span class="empty">ماكو أوقات فارغة بهذا اليوم.</span>'}
@@ -618,16 +669,76 @@ async function ownerHome(shopId,shop,pin){
       }catch(e){msg.innerHTML=note("bad","ما انحجز، خلل بالاتصال.")}
       btn.disabled=false};
   }
+  function drawHrs(){
+    const el=$("hrs");if(KIND==="hall"||KIND==="gym"){el.innerHTML="";return}
+    const own=SCHED&&(SCHED.days||[]).find(x=>x.day===day&&x.cnt>0),s=daySet(day);
+    const sl=allSlots(day),gap=sl.length>1?hmMin(sl[1])-hmMin(sl[0]):0;
+    const sum=isOff(day)?"هذا يوم عطلتك الثابتة. إذا تريد تداوم بيه، حدد الدوام وعدد "+w.peopleAll+" واحفظه لهذا اليوم.":
+      s?"دوامك هذا اليوم من "+hm12(s.open)+" لـ "+hm12(s.close)+" · "+s.cnt+" "+(s.cnt>10?"نفر":"نفرات")+(gap?" · كل "+gap+" دقيقة":"")+(own?" (خاص بهذا اليوم)":""):
+      "ما حددت الدوام بعد، والمواعيد تطلع كل نص ساعة. حدد دوامك وعدد "+w.peopleAll+" اللي تريدهم.";
+    const v=s||{open:"18:00",close:"23:00",cnt:10};
+    el.innerHTML='<details class="hrs-box"><summary>⏰ '+esc(sum)+'</summary>'+
+      '<div class="hrs-grid"><label>يبدي الدوام<input type="time" id="hO" value="'+esc(v.open)+'"></label>'+
+      '<label>يخلص الدوام<input type="time" id="hC" value="'+esc(v.close)+'"></label>'+
+      '<label>كم نفر<input type="number" id="hN" min="1" max="100" inputmode="numeric" value="'+esc(v.cnt)+'"></label></div>'+
+      '<div class="row"><button class="btn" id="hDay">احفظ لهذا اليوم بس</button><button class="alt" id="hAll">احفظ لكل الأيام</button>'+
+      (own?'<button class="alt" id="hReset">رجّعه مثل باقي الأيام</button>':'')+'</div><div id="hMsg"></div></details>';
+    const get=()=>{const o=$("hO").value,c=$("hC").value,n=+$("hN").value;
+      if(!o||!c){$("hMsg").innerHTML=note("bad","اختار ساعة البداية والنهاية.");return null}
+      if(!(n>=1&&n<=100)){$("hMsg").innerHTML=note("bad","عدد النفرات لازم يكون من 1 لـ 100.");return null}
+      if(c!=="00:00"&&hmMin(c)<=hmMin(o)){$("hMsg").innerHTML=note("bad","ساعة النهاية لازم تكون بعد ساعة البداية.");return null}
+      return {o,c,n}};
+    $("hDay").onclick=async()=>{const g=get();if(!g)return;
+      try{await rpc("owner_set_day",{p_shop:shopId,p_pin:pin,p_day:day,p_open:g.o,p_close:g.c,p_cnt:g.n});draw()}catch(e){$("hMsg").innerHTML=note("bad","ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+    $("hAll").onclick=async()=>{const g=get();if(!g)return;
+      try{await rpc("owner_set_default",{p_shop:shopId,p_pin:pin,p_open:g.o,p_close:g.c,p_cnt:g.n});draw()}catch(e){$("hMsg").innerHTML=note("bad","ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+    if(own)$("hReset").onclick=async()=>{try{await rpc("owner_set_day",{p_shop:shopId,p_pin:pin,p_day:day,p_open:null,p_close:null,p_cnt:null});draw()}catch(e){}};
+  }
+  async function drawWait(){
+    const el=$("wait");let ws=[];try{ws=(await rpc("owner_waitlist",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){}
+    if(!ws.length){el.innerHTML="";return}
+    el.innerHTML='<h2>قائمة الانتظار ('+ws.length+')</h2><ul class="list" id="wl"></ul>';
+    ws.forEach(x=>{const li=document.createElement("li");
+      li.innerHTML='<span class="who">'+esc(x.name)+'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span>';
+      const row=document.createElement("span");row.className="row";row.style.marginTop="0";
+      const a=document.createElement("a");a.className="alt";a.textContent="بلّغه صار مكان";a.target="_blank";a.rel="noopener";
+      a.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، صار عندنا مكان يوم "+fmt(day)+". تگدر تحجز من هذا الرابط: "+cLink);
+      const d=document.createElement("button");d.className="alt danger";d.textContent="شيله";
+      d.onclick=async()=>{await rpc("owner_wait_del",{p_shop:shopId,p_pin:pin,p_id:x.id}).catch(()=>{});drawWait()};
+      row.append(a,d);li.appendChild(row);$("wl").appendChild(li)});
+  }
+  async function newCheck(){
+    const k="seen-"+shopId;let since=read(k);if(!since){since=new Date().toISOString();store(k,since)}
+    let n=0;try{n=(await rpc("owner_new_count",{p_shop:shopId,p_pin:pin,p_since:since}))||0}catch(e){}
+    const el=$("newB");if(!el)return;
+    el.innerHTML=n>0?'<div class="new-box">🔔 لديك '+n+' '+(n===1?"حجز جديد":"حجوزات جديدة")+' من '+esc(w.peopleAll)+'<button class="alt" id="seen">شفتها</button></div>':"";
+    if(n>0)$("seen").onclick=()=>{store(k,new Date().toISOString());el.innerHTML="";draw()};
+  }
+  async function stats(){
+    let s=null;try{s=await rpc("owner_stats",{p_shop:shopId,p_pin:pin})}catch(e){}
+    $("stats").innerHTML=s?'<div><b>'+(s.month||0)+'</b><small>حجز هذا الشهر</small></div><div><b>'+(s.done||0)+'</b><small>خلص منهم</small></div>'+
+      '<div><b>'+(s.cancel||0)+'</b><small>انلغى</small></div><div><b>'+(s.last||0)+'</b><small>الشهر الماضي</small></div>':'<p class="hint">ما گدرنا نجيب الإحصائيات.</p>';
+  }
+  function offsUI(){
+    const names=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],cur=String((SCHED&&SCHED.off)||"").split(",");
+    $("offs").innerHTML=names.map((n,i)=>'<label class="off-chip"><input type="checkbox" value="'+i+'"'+(cur.includes(String(i))?" checked":"")+'>'+n+'</label>').join("");
+    $("offSave").onclick=async()=>{const v=[...$("offs").querySelectorAll("input:checked")].map(x=>x.value).join(",");
+      try{await rpc("owner_set_off",{p_shop:shopId,p_pin:pin,p_off:v});alert("انحفظت أيام العطلة.");draw()}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+    $("svcT").value=(SCHED&&SCHED.services)||"";
+    $("svcSave").onclick=async()=>{try{await rpc("owner_set_services",{p_shop:shopId,p_pin:pin,p_text:$("svcT").value.slice(0,1500)});alert("انحفظت الخدمات.")}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+  }
   async function draw(){
     try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
-    daysBar($("days"),day,closed,d=>{day=d;draw()});
+    try{SCHED=await rpc("shop_sched",{p_shop:shopId})}catch(e){}
+    daysBar($("days"),day,closed.concat(offList()),d=>{day=d;draw()});
     const isClosed=closed.includes(day);
+    drawHrs();
     $("dayCtl").innerHTML=(isClosed?note("bad","هذا اليوم مغلق، و"+w.peopleAll+" ما يكدرون يحجزون بيه."):"")+
       '<button class="alt '+(isClosed?"":"danger")+'" id="tog">'+(isClosed?"افتح هذا اليوم":"أغلق هذا اليوم")+'</button>';
     $("tog").onclick=async()=>{
       if(!isClosed&&!confirm("تغلق يوم "+fmt(day)+"؟ "+w.peopleAll+" ما راح يكدرون يحجزون بيه."))return;
       await rpc("owner_toggle_day",{p_shop:shopId,p_pin:pin,p_day:day}).catch(()=>{});draw()};
-    $("walkBtn").hidden=isClosed;$("walk").innerHTML="";
+    $("walkBtn").hidden=isClosed||isOff(day);$("walk").innerHTML="";drawWait();
     $("walkBtn").onclick=()=>walkIn();
     const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let rows=[];try{rows=(await rpc("barber_bookings",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال. حدّث الصفحة.</li>';return}
@@ -644,6 +755,8 @@ async function ownerHome(shopId,shop,pin){
         rb.onclick=()=>readyEditor(li,x);row.appendChild(rb);
         if(x.ready){const n=document.createElement("a");n.className="alt";n.textContent="دز للزبون بالواتساب";n.target="_blank";n.rel="noopener";
           n.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، "+readyLabel()+" مالتك "+readyText(x.ready)+". تكدر تتابع من هذا الرابط: "+cLink);row.appendChild(n)}}
+      if(x.status!=="done"&&x.phone&&x.phone!=="-"&&!isClosed){const n=document.createElement("a");n.className="alt";n.textContent="ذكّره بالواتساب";n.target="_blank";n.rel="noopener";
+        n.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، نذكرك بموعدك عند "+shop.name+" يوم "+fmt(day)+" الساعة "+t12(x.time)+". إذا ما تگدر تجي، تگدر تلغيه أو تغيّره من هذا الرابط: "+cLink);row.appendChild(n)}
       if(x.status==="done")row.insertAdjacentHTML("beforeend",'<span class="tag ok">خلص</span>');
       else{
         const d=document.createElement("button");d.className="alt";d.textContent="خلص";
@@ -658,7 +771,7 @@ async function ownerHome(shopId,shop,pin){
           li.innerHTML='<span class="time">'+(t?esc(hm12(t)):"استلام")+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+'<small>حجز يوم '+esc(fmt(x.day))+' · <a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span><span class="tag ok">استلام</span>';
           ul.appendChild(li)})}}
   }
-  draw();loadG();
+  draw().then(offsUI);loadG();stats();newCheck();setInterval(newCheck,60000);
 }
 
 /* ================= المدير ================= */
