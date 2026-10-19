@@ -257,6 +257,10 @@ function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function today(){return ymd(new Date())}
 function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")}
 function fmt(s){const [y,m,d]=s.split("-");return dayNames[new Date(+y,m-1,+d).getDay()]+" "+(+d)+"/"+(+m)}
+const SUBS=[[1,"يوم واحد (للتجربة)"],[15,"15 يوم"],[30,"شهر"],[45,"شهر ونص"],[60,"شهرين"],[75,"شهرين ونص"],[90,"3 أشهر"],[120,"4 أشهر"],[180,"6 أشهر"],[365,"سنة"]];
+function subOpts(sel){return SUBS.map(x=>'<option value="'+x[0]+'"'+(x[0]===sel?" selected":"")+'>'+x[1]+'</option>').join("")}
+const AGE_KINDS=["doctor","dentist","gym"];
+function needAge(){return AGE_KINDS.includes(KIND)}
 let KIND="";
 const READY_DATE=["tailor","mobile","photo"],READY_TIME=["salon","beauty"];
 function readyKind(){return READY_DATE.includes(KIND)?"date":READY_TIME.includes(KIND)?"time":""}
@@ -317,6 +321,7 @@ async function customer(shopId){
   let shop,closed=[],photos=[];
   try{shop=(await rpc("shop_public",{p_shop:shopId}))[0]}catch(e){return netErr()}
   if(!shop){app.innerHTML=note("bad","هذا الرابط غلط. اطلب الرابط الصحيح من المحل.");return}
+  if(!shop.kind){try{const kk=await rpc("shop_kind",{p_shop:shopId});shop.kind=(Array.isArray(kk)?(kk[0]&&(kk[0].shop_kind||kk[0].kind)):kk)||""}catch(e){}}
   KIND=shop.kind||"";const w=W(shop.kind);setHead(shop.name,w.page,shop.photo);
   if(!shop.phone){try{const c=await rpc("shop_contact",{p_shop:shopId});shop.phone=(Array.isArray(c)?(c[0]&&(c[0].phone||c[0].shop_contact)):c)||""}catch(e){}}
   if(shop.phone){const s=$("sub");s.innerHTML=esc(w.page)+' · <a class="ltr" style="color:#fff" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a>'}
@@ -326,6 +331,8 @@ async function customer(shopId){
     '<div id="closedNote"></div><div class="slots" id="slots"></div><div id="slotInfo"></div>'+
     '<div id="form"><label for="n">'+w.you+'</label><input id="n" autocomplete="name" placeholder="'+w.ph+'">'+
     '<p class="hint">'+w.nameHint+'</p>'+
+    (AGE_KINDS.includes(shop.kind)?'<label for="ag">'+(w.peopleAll==="المرضى"?"عمر المريض":"العمر")+'</label><input id="ag" inputmode="numeric" dir="ltr" maxlength="3" placeholder="مثلًا: 35">':'')+
+    ((shop.kind==="doctor"||shop.kind==="dentist")?'<label for="cm">نوع المرض أو سبب المراجعة</label><input id="cm" maxlength="80" placeholder="'+(shop.kind==="dentist"?"مثلًا: ألم سن، تنظيف، تقويم":"مثلًا: قلب، صدرية، باطنية")+'">':'')+
     '<label for="p">'+w.yourPhone+'</label><input id="p" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
     '<button class="btn" id="go">احجز الموعد</button><div id="msg"></div></div>'+
     '<div id="gal"></div>';
@@ -406,12 +413,18 @@ async function customer(shopId){
   $("go").onclick=async()=>{
     const name=$("n").value.trim(),phone=$("p").value.trim(),msg=$("msg");
     if(!slot){msg.innerHTML=note("bad","اختار ساعة الموعد أولًا.");return}
-    const ce=nameErr(name)||phoneErr(phone);if(ce){msg.innerHTML=note("bad",ce);return}
+    const age=needAge()?$("ag").value.trim():"";
+    const ageE=(needAge()&&age&&(!/^\d+$/.test(age)||+age<1||+age>120))?"العمر لازم يكون رقم بين 1 و120.":"";
+    const cm=$("cm")?$("cm").value.trim():"";
+    const cmE="";
+    const ce=nameErr(name)||ageE||cmE||phoneErr(phone);if(ce){msg.innerHTML=note("bad",ce);return}
     const btn=$("go");btn.disabled=true;
     try{
       if(KIND==="gym")slot=slot.slice(0,3)+"-"+Math.random().toString(36).slice(2,7);
       const r=await rpc("book",{p_shop:shopId,p_day:day,p_time:slot,p_name:name,p_phone:phone});
       if(r==="ok"){
+        if(cm)await rpc("set_complaint",{p_shop:shopId,p_day:day,p_time:slot,p_phone:phone,p_text:cm}).catch(()=>{});
+        if(age)await rpc("set_age",{p_shop:shopId,p_day:day,p_time:slot,p_phone:phone,p_age:+age}).catch(()=>{});
         const old=getMine();
         if(changing&&old)await rpc("customer_cancel",{p_shop:shopId,p_day:old.day,p_time:old.time,p_phone:old.phone}).catch(()=>{});
         store(mineKey,JSON.stringify({day,time:slot,name,phone}));
@@ -522,7 +535,7 @@ function ownerHome(shopId,shop,pin){
     $("cnt").textContent=rows.length+" موعد، خلص منهم "+rows.filter(x=>x.status==="done").length;
     ul.innerHTML=rows.length?"":'<li class="empty">ماكو مواعيد بهذا اليوم بعد.</li>';
     rows.forEach(x=>{const li=document.createElement("li");
-      li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span>';
+      li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span>';
       const row=document.createElement("span");row.className="row";row.style.marginTop="0";
       if(isClosed){const n=document.createElement("a");n.className="alt";n.textContent="بلّغه بالواتساب";n.target="_blank";n.rel="noopener";
         n.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، نعتذر منك، "+w.place+" مغلق يوم "+fmt(day)+" وموعدك كان الساعة "+t12(x.time)+". تكدر تحجز موعد جديد من هذا الرابط: "+cLink);
@@ -542,7 +555,7 @@ function ownerHome(shopId,shop,pin){
     if(readyKind()==="date"){let pk=[];try{pk=(await rpc("owner_pickups",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){}
       if(pk.length){if(!rows.length)ul.innerHTML="";const hd=document.createElement("li");hd.className="empty";hd.textContent="استلامات هذا اليوم: "+pk.length;ul.appendChild(hd);
         pk.forEach(x=>{const li=document.createElement("li");const t=(x.ready||"").split(" ")[1];
-          li.innerHTML='<span class="time">'+(t?esc(hm12(t)):"استلام")+'</span><span class="who">'+esc(x.name)+'<small>حجز يوم '+esc(fmt(x.day))+' · <a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span><span class="tag ok">استلام</span>';
+          li.innerHTML='<span class="time">'+(t?esc(hm12(t)):"استلام")+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+'<small>حجز يوم '+esc(fmt(x.day))+' · <a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span><span class="tag ok">استلام</span>';
           ul.appendChild(li)})}}
   }
   draw();loadG();
@@ -568,7 +581,7 @@ function adminHome(pin){
     '<label for="at">نوع المحل</label><select id="at">'+Object.keys(TYPES).map(k=>'<option value="'+k+'">'+TYPES[k]+'</option>').join("")+'</select>'+
     '<label for="ap">رقم صاحب المحل</label><input id="ap" inputmode="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
     '<label for="ak">الرقم السري لصاحب المحل</label><input id="ak" inputmode="numeric" dir="ltr" placeholder="مثلًا: 4821">'+
-    '<label for="am">مدة الاشتراك</label><select id="am"><option value="1">شهر واحد</option><option value="3">3 أشهر</option><option value="6">6 أشهر</option></select>'+
+    '<label for="am">مدة الاشتراك</label><select id="am">'+subOpts(30)+'</select>'+
     '<button class="btn" id="add">أضف مدير ثانوي</button><div id="msg"></div>'+
     '<h2>المحلات المشتركة</h2><ul class="list" id="list"></ul>'+
     '<button class="alt" id="out" style="margin-top:16px">اطلع من الحساب</button>'+
@@ -580,7 +593,7 @@ function adminHome(pin){
     const msg=$("msg");
     const ae=nameErr(n)||phoneErr(p)||pinErr(k)||(allShops.some(x=>x.barber_pin===k)?"هذا الرقم السري مستخدم لمدير ثانوي ثاني، اختار رقم غيره.":"");
     if(ae){msg.innerHTML=note("bad",ae);return}
-    try{await rpc("admin_add_shop2",{p_pin:pin,p_name:n,p_phone:p,p_barber_pin:k,p_months:m,p_kind:t});
+    try{await rpc("admin_add_shop3",{p_pin:pin,p_name:n,p_phone:p,p_barber_pin:k,p_days:m,p_kind:t});
       msg.innerHTML=note("good","انضاف المحل. دز الرابط والرقم السري لصاحب المحل.");
       ["an","ap","ak"].forEach(id=>$(id).value="");draw();
     }catch(e){msg.innerHTML=note("bad","ما انضاف. السبب: "+String(e.message||e).slice(0,200))}
@@ -598,7 +611,9 @@ function adminHome(pin){
         '<span class="tag '+(active?"ok":"bad")+'">'+(active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+'</span>';
       const row=document.createElement("div");row.className="row";row.style.width="100%";
       const mk=(t,f)=>{const b=document.createElement("button");b.className="alt";b.textContent=t;b.onclick=f;row.appendChild(b)};
-      mk("جدد شهر",async()=>{if(!confirm("تجدد اشتراك "+s.name+" شهر؟"))return;await rpc("admin_extend",{p_pin:pin,p_shop:s.id,p_months:1}).catch(()=>{});draw()});
+      const xs=document.createElement("select");xs.style.width="auto";xs.setAttribute("aria-label","مدة التجديد");xs.innerHTML=subOpts(30);row.appendChild(xs);
+      mk("جدد",async()=>{const dd=+xs.value,lb=xs.options[xs.selectedIndex].text;if(!confirm("تجدد اشتراك "+s.name+" "+lb+"؟"))return;
+        try{await rpc("admin_extend_days",{p_pin:pin,p_shop:s.id,p_days:dd})}catch(e){alert("ما تجدد. تأكد إنك شغّلت آخر كود بـ Supabase.")}draw()});
       mk("نسخ "+w.link,()=>copy(cLink));
       const sel=document.createElement("select");sel.style.width="auto";sel.setAttribute("aria-label","نوع "+s.name);
       Object.keys(TYPES).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent="النوع: "+TYPES[k];if((s.kind||"barber")===k)o.selected=true;sel.appendChild(o)});
