@@ -194,14 +194,22 @@ header{flex-direction:column;justify-content:center;text-align:center}
 header>div:not(.waves){width:100%;text-align:center}
 header #sub,header #sub *{text-align:center}
 header #sub .ltr{direction:ltr;unicode-bidi:isolate}
-.sub-corner{position:absolute!important;top:8px;left:10px;z-index:3;font-size:.68rem;line-height:1.45;text-align:left;
-  background:rgba(0,0,0,.22);border-radius:8px;padding:4px 7px;color:#fff;font-weight:400;max-width:42%}
-.sub-corner b{font-weight:700}
-.sub-corner.warn{background:rgba(226,168,43,.85);color:#3a2800}
-.sub-corner.bad{background:rgba(194,54,75,.9)}
+.sub-corner{position:absolute!important;top:6px;left:8px;z-index:3;font-size:.66rem;line-height:1.4;text-align:left;
+  background:none;border:0;padding:0;color:rgba(255,255,255,.85);font-weight:400;max-width:38%}
+.sub-corner b{font-weight:600}
+.sub-corner.warn b{color:#FFD45C}
+.sub-corner.bad b{color:#FF9AA8}
+header{padding-top:34px!important}
 .lock-box{text-align:center;background:#FCE8EB;border:2px solid #C2364B;border-radius:14px;padding:18px;margin:12px 0}
 .lock-box h2{color:#7a1626;margin-top:0}
 .lock-n{font-weight:700;font-size:1.1rem;color:#14306B}
+.exp-box{background:#FFF6E0;border:2px solid #E2A82B;border-radius:14px;padding:12px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.exp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.92rem}
+.tag.warn{background:#E2A82B;color:#3a2800}
+.days-one{display:flex!important;flex-direction:column;align-items:center;gap:4px}
+.days-one .day{min-width:110px}
+.pick-hint{margin:0;font-size:.78rem;opacity:.6;font-weight:400;text-align:center;width:100%}
+.slots-one{justify-content:center}
 </style>
 </head>
 <body>
@@ -297,10 +305,17 @@ function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s
 function note(cls,text){return '<div class="note '+cls+'">'+esc(text)+'</div>'}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function read(k){try{return localStorage.getItem(k)}catch(e){return null}}
-function daysBar(el,sel,closed,onPick){el.innerHTML="";el.classList.add("days30");next7().forEach((d,i)=>{const b=document.createElement("button");b.className="day";
-  const k=ymd(d);b.setAttribute("aria-pressed",k===sel);
-  b.innerHTML=(i===0?"اليوم":dayNames[d.getDay()])+"<b>"+d.getDate()+"</b>"+((i===0||d.getDate()===1)?"<i>"+(d.getMonth()+1)+"/"+d.getFullYear()%100+"</i>":"")+(closed.includes(k)?"<small>مغلق</small>":"");
-  b.onclick=()=>onPick(k);el.appendChild(b)})}
+function dayLabel(d,i,closed){const k=ymd(d);return (i===0?"اليوم":dayNames[d.getDay()])+"<b>"+d.getDate()+"</b>"+((i===0||d.getDate()===1)?"<i>"+(d.getMonth()+1)+"/"+d.getFullYear()%100+"</i>":"")+(closed.includes(k)?"<small>مغلق</small>":"")}
+function daysBar(el,sel,closed,onPick){el.innerHTML="";const days=next7();
+  if(!el._open){el.classList.remove("days30");el.classList.add("days-one");
+    let ix=days.findIndex(d=>ymd(d)===sel);if(ix<0)ix=0;
+    el.insertAdjacentHTML("beforeend",'<p class="pick-hint">اضغط هنا واختار اليوم اللي تريده</p>');
+    const b=document.createElement("button");b.className="day";b.setAttribute("aria-pressed","true");b.setAttribute("aria-expanded","false");
+    b.innerHTML=dayLabel(days[ix],ix,closed);b.onclick=()=>{el._open=true;daysBar(el,sel,closed,onPick)};el.appendChild(b);return}
+  el.classList.remove("days-one");el.classList.add("days30");
+  days.forEach((d,i)=>{const b=document.createElement("button");b.className="day";
+  const k=ymd(d);b.setAttribute("aria-pressed",k===sel);b.innerHTML=dayLabel(d,i,closed);
+  b.onclick=()=>{el._open=false;onPick(k)};el.appendChild(b)})}
 function netErr(){app.innerHTML=note("bad","صار خلل بالاتصال. تأكد من الإنترنت وحدّث الصفحة.")}
 function wa(phone){return "https://wa.me/"+String(phone||"").replace(/\D/g,"").replace(/^0/,"964")}
 function contact(text){return '<div class="contact">'+esc(text)+'<br>صاحب إدارة البرنامج: '+esc(OWNER_NAME)+
@@ -343,9 +358,10 @@ async function customer(shopId){
   try{shop=(await rpc("shop_public",{p_shop:shopId}))[0]}catch(e){return netErr()}
   if(!shop){app.innerHTML=note("bad","هذا الرابط غلط. اطلب الرابط الصحيح من المحل.");return}
   if(!shop.kind){try{const kk=await rpc("shop_kind",{p_shop:shopId});shop.kind=(Array.isArray(kk)?(kk[0]&&(kk[0].shop_kind||kk[0].kind)):kk)||""}catch(e){}}
-  KIND=shop.kind||"";const w=W(shop.kind);setHead(shop.name,w.page,shop.photo);
+  KIND=shop.kind||"";const w=W(shop.kind);setHead(w.page,shop.name,shop.photo);
   if(!shop.phone){try{const c=await rpc("shop_contact",{p_shop:shopId});shop.phone=(Array.isArray(c)?(c[0]&&(c[0].phone||c[0].shop_contact)):c)||""}catch(e){}}
-  if(shop.phone){const s=$("sub");s.innerHTML=esc(w.page)+' · <a class="ltr" style="color:#fff" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a>'}
+  $("sub").innerHTML='<b style="font-size:1.25rem;display:block">'+esc((()=>{const hw=HEADW[shop.kind||"barber"]||"",bare=hw.replace(/^ال/,"");return (!hw||shop.name.startsWith(hw)||shop.name.startsWith(bare))?shop.name:hw+" "+shop.name})())+'</b>'+
+    (shop.phone?'<a class="ltr" style="display:block;color:inherit" href="tel:'+esc(shop.phone)+'">'+esc(shop.phone)+'</a>':'');
   const expNote=shop.active?"":note("bad","انتهى اشتراك صفحة "+(HEADW[shop.kind||"barber"]||"المحل")+" حاليًا. تگدر تحجز عادي، وحجزك يوصله بعد ما يجدد.");
   try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
   app.innerHTML=expNote+'<div id="mine"></div><h2>اختار اليوم</h2><div class="days" id="days"></div><h2>اختار الساعة</h2>'+
@@ -358,7 +374,7 @@ async function customer(shopId){
     '<button class="btn" id="go">احجز الموعد</button><div id="msg"></div></div>'+
     '<div id="gal"></div>';
   const mineKey="booking-"+shopId;
-  let day=today(),slot=null,changing=false;
+  let day=today(),slot=null,changing=false,slotsOpen=false;
   const getMine=()=>{try{return JSON.parse(read(mineKey))}catch(e){return null}};
 
   async function showMine(){
@@ -389,7 +405,7 @@ async function customer(shopId){
   }
 
   async function draw(){
-    daysBar($("days"),day,closed,d=>{day=d;slot=null;$("slotInfo").innerHTML="";draw()});
+    daysBar($("days"),day,closed,d=>{day=d;slot=null;slotsOpen=false;$("slotInfo").innerHTML="";draw()});
     const isClosed=closed.includes(day);
     $("closedNote").innerHTML=isClosed?note("bad","المحل مغلق بهذا اليوم. اختار يوم ثاني."):"";
     $("form").hidden=isClosed;
@@ -406,6 +422,13 @@ async function customer(shopId){
       else if(KIND!=="gym"&&day===today()&&t<=now){b.disabled=true}
       else{b.setAttribute("aria-pressed",t===slot);b.onclick=()=>{slot=t;$("slotInfo").innerHTML="";draw()}}
       box.appendChild(b)});
+    if(!slotsOpen){const all=[...box.querySelectorAll(".slot")];
+      let keep=all.find(b=>b.getAttribute("aria-pressed")==="true")||all.find(b=>!b.disabled&&!b.classList.contains("taken")&&!b.classList.contains("mine"))||all.find(b=>!b.disabled)||all[0];
+      all.forEach(b=>{if(b!==keep)b.hidden=true});
+      if(keep){const f=keep.onclick;keep.onclick=()=>{slotsOpen=true;draw()}}
+      box.insertAdjacentHTML("afterbegin",'<p class="pick-hint" style="grid-column:1/-1">اضغط على الساعة حتى تشوف كل الساعات</p>');box.classList.add("slots-one")}
+    else{box.classList.remove("slots-one");
+      box.querySelectorAll(".slot").forEach(b=>{const f=b.onclick;if(f&&!b.classList.contains("taken")&&!b.classList.contains("mine"))b.onclick=()=>{f();slotsOpen=false;draw()}})}
   }
   function slotInfo(t,name,isMine){
     const el=$("slotInfo");
@@ -497,7 +520,7 @@ async function ownerHome(shopId,shop,pin){
     return}
   {const old=document.getElementById("subCorner");if(old)old.remove();
    const sc=document.createElement("div");sc.id="subCorner";sc.className="sub-corner "+(active?(left<=3?"warn":"ok"):"bad");
-   sc.innerHTML=active?(shop.sub_days?'<div>اشتراكك '+shop.sub_days+' يوم</div>':'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'+(left<=3?'<div>قرب يخلص، جدده</div>':'')
+   sc.innerHTML=active?(shop.sub_days?'<div>اشتراكك '+shop.sub_days+' يوم</div>':'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'
      :'<div><b>انتهى اشتراكك</b></div><div>أرجو التجديد</div><div class="ltr">'+OWNER_PHONE+'</div>';
    document.querySelector("header").appendChild(sc)}
   app.innerHTML=
@@ -679,6 +702,14 @@ function adminHome(pin){
     const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let shops=[];try{shops=allShops=(await rpc("admin_shops2",{p_pin:pin}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال.</li>';return}
     ul.innerHTML=shops.length?"":'<li class="empty">ماكو محلات بعد. أضف أول محل من فوق.</li>';
+    {let eb=document.getElementById("expBox");if(!eb){eb=document.createElement("div");eb.id="expBox";ul.parentNode.insertBefore(eb,ul)}
+     const dl=x=>Math.round((new Date(x.expires+"T00:00:00")-new Date(today()+"T00:00:00"))/864e5)+1;
+     const near=shops.filter(x=>dl(x)<=3).sort((a,b)=>dl(a)-dl(b));
+     eb.innerHTML=near.length?'<div class="exp-box"><b>اشتراكات قربت تخلص ('+near.length+')</b>'+near.map(x=>{const n=dl(x);
+       const t=n<=0?"خلص اشتراكك":(n===1?"آخر يوم اليوم":"باقي "+n+" أيام");
+       const m="أهلًا "+x.name+"، "+(n<=0?"انتهى اشتراك صفحتك بنظام الحجز":"اشتراك صفحتك بنظام الحجز "+(n===1?"ينتهي اليوم":"باقي عليه "+n+" أيام"))+". حتى تجدده تواصل ويايه. "+OWNER_NAME+" "+OWNER_PHONE;
+       return '<div class="exp-row"><span>'+esc(x.name)+' · <span class="tag '+(n<=0?"bad":"warn")+'">'+t+'</span></span>'+
+         (x.phone?'<a class="alt" target="_blank" rel="noopener" href="'+wa(x.phone)+'?text='+encodeURIComponent(m)+'">ذكّره بالواتساب</a>':'')+'</div>'}).join("")+'</div>':""}
     shops.forEach(s=>{
       const active=s.expires>=today();
       const cLink=base+"?shop="+s.id,oLink=base+"?barber="+s.id,w=W(s.kind);
