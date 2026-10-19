@@ -234,7 +234,11 @@ async function copy(t){try{await navigator.clipboard.writeText(t);alert("انت�
 if(q.get("shop"))customer(q.get("shop"));
 else if(q.get("barber"))barber(q.get("barber"));
 else if(q.has("admin"))admin();
-else app.innerHTML=note("","افتح رابط الحجز اللي عطاك إياه المحل حتى تحجز موعدك.");
+else{
+  app.innerHTML=note("","افتح رابط الحجز اللي عطاك إياه المحل حتى تحجز موعدك.")+
+    '<button class="alt" id="adm" style="margin-top:40px">دخول المدير</button>';
+  document.getElementById("adm").onclick=()=>{location.href=location.pathname+"?admin"};
+}
 </script>
 </body>
 </html>
