@@ -229,6 +229,8 @@ header>div:not(.waves):not(.sub-corner){padding:0 70px}
 .sub-corner{top:3px!important;left:6px!important;padding:0!important;max-width:none!important;white-space:nowrap;font-size:.7rem!important;width:auto!important;text-align:left!important}
 .qr-box{background:#fff;border:1px solid #d6e4e6;border-radius:12px;padding:12px;margin:8px 0;text-align:center}
 #qr{display:flex;justify-content:center;margin:8px 0}#qr img,#qr canvas{background:#fff;padding:8px;border-radius:8px}
+.stats div[data-k]{cursor:pointer}.st-money{grid-column:1/-1;background:#FFF6E0!important}
+.pr-list{background:#fff8e6;border:1px solid #E2A82B;border-radius:12px;padding:10px;margin:10px 0;text-align:center}.pr-list div{margin-top:4px}
 </style>
 </head>
 <body>
@@ -310,7 +312,7 @@ tailor:["خدماتك وأسعارك","خياطة دشداشة 25 ألف"],hall:
 mobile:["خدماتك وأسعارك","تبديل شاشة من 40 ألف"],gym:["أسعار الاشتراك","الشهر 35 ألف"],shop:["خدماتك وأسعارك","المنتج والسعر"]};
 const TYPES={barber:"حلاق",doctor:"دكتور",dentist:"طبيب أسنان",salon:"صالون نسائي",beauty:"مركز تجميل",sport:"رياضة",photo:"مصور",tailor:"خياط",hall:"قاعة مناسبات",lawyer:"محامي",mobile:"صيانة موبايلات",gym:"نادي جيم",shop:"محل"};
 const INFO={barber:"حجز مواعيد أونلاين للحلاقين.",doctor:"حجز مواعيد أونلاين للمرضى داخل العيادة.",dentist:"حجز مواعيد أونلاين للمرضى عند طبيب الأسنان.",salon:"حجز مواعيد أونلاين للصالون النسائي.",beauty:"حجز مواعيد أونلاين لمركز التجميل.",sport:"حجز ساعات الملعب أونلاين.",photo:"حجز مواعيد التصوير أونلاين.",tailor:"حجز مواعيد أونلاين عند الخياط للقياس والاستلام.",gym:"اشتراك أونلاين بالنادي، لشهر أو 3 أو 6 أشهر أو سنة، ويبدأ من اليوم اللي تختاره.",mobile:"حجز موعد أونلاين لتصليح وصيانة الموبايل.",lawyer:"حجز موعد استشارة قانونية أونلاين عند المحامي.",hall:"حجز القاعة أونلاين للأعراس والمناسبات، بفترة الظهر أو فترة الليل.",shop:"حجز مواعيد أونلاين للمحل."};
-const FEM_OWNER=[["صورتك الرئيسية","صورتج الرئيسية"],["صورك الشخصية","صورج الشخصية"],["أضف صورتك","أضيفي صورتج"],["غيّر الصورة","غيّري الصورة"],["أضف لحد 3 صور إلك","أضيفي لحد 3 صور إلج"],["أضف صورة إلك","أضيفي صورة إلج"],["أضف صورة","أضيفي صورة"],
+const FEM_OWNER=[["صورتك الرئيسية","صورتج الرئيسية"],["صورك الشخصية","صورج الشخصية"],["أضف صورتك","أضيفي صورتج"],["غيّر الصورة","غيّري الصورة"],["أضف لحد 3 صور إلك","أضيفي لحد 3 صور إلج"],["أضف صور إلك","أضيفي صور إلج"],["أضف صور","أضيفي صور"],["تگدر تختار","تگدرين تختارين"],
  ["عن نفسك","عن نفسج"],["اكتب أسعارك إنت","اكتبي أسعارج إنتِ"],["عطلتك الثابتة","عطلتج الثابتة"],["عطلتك:","عطلتج:"],["ما عندك عطلة ثابتة","ما عندج عطلة ثابتة"],["اضغط حتى تغيّرها","اضغطي حتى تغيّرينها"],
  ["اختار الأيام اللي ما تداوم بيها","اختاري الأيام اللي ما تداومين بيها"],["دوامك","دوامج"],["ما حددت الدوام","ما حددتي الدوام"],["حدد دوامك","حددي دوامج"],["إذا تريد تداوم بيه، حدد","إذا تريدين تداومين بيه، حددي"],["يوم عطلتك","يوم عطلتج"],
  ["انتهى اشتراكك","انتهى اشتراكج"],["اشتراكك","اشتراكج"],["لديك","لديج"],["تگدر تشوفها","تگدرين تشوفينها"],["حتى ترجع تشتغل","حتى ترجع تشتغل"],["دزه ل","دزيه ل"],["أو حطه بالانستغرام","أو حطيه بالانستغرام"],
@@ -352,8 +354,11 @@ function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function today(){return ymd(new Date())}
 function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")}
 function fmt(s){const [y,m,d]=s.split("-");return dayNames[new Date(+y,m-1,+d).getDay()]+" "+(+d)+"/"+(+m)}
-const SUBS=[[1,"يوم واحد (للتجربة)"],[15,"15 يوم"],[30,"شهر"],[45,"شهر ونص"],[60,"شهرين"],[75,"شهرين ونص"],[90,"3 أشهر"],[120,"4 أشهر"],[180,"6 أشهر"],[365,"سنة"]];
-function subOpts(sel){return SUBS.map(x=>'<option value="'+x[0]+'"'+(x[0]===sel?" selected":"")+'>'+x[1]+'</option>').join("")}
+const SUBS=[[1,"يوم واحد (للتجربة)"],[15,"15 يوم"],[30,"شهر"],[45,"شهر ونص"],[60,"شهرين"],[75,"شهرين ونص"],[90,"3 أشهر"],[120,"4 أشهر"],[180,"6 أشهر"],[365,"سنة"],[36500,"مجاني"]];
+const FREE=36500;let PRICES={};
+async function loadPrices(){try{PRICES=(await rpc("sub_prices",{}))||{}}catch(e){PRICES={}}}
+function priceTxt(d){const v=+PRICES[d];return v>0?v.toLocaleString("en")+" دينار":""}
+function subOpts(sel){return SUBS.map(x=>'<option value="'+x[0]+'"'+(x[0]===sel?" selected":"")+'>'+x[1]+(priceTxt(x[0])?" — "+priceTxt(x[0]):"")+'</option>').join("")}
 const AGE_KINDS=["doctor","dentist","gym"];
 function needAge(){return AGE_KINDS.includes(KIND)}
 let KIND="";
@@ -465,7 +470,7 @@ async function customer(shopId){
     if(past&&!(rdy&&rdy.slice(0,10)>=today())){store(mineKey);return}
     let st="new";try{st=await rpc("my_booking_status",{p_shop:shopId,p_day:b.day,p_time:b.time,p_phone:b.phone})}catch(e){}
     if(st==="cancel"||st===null){store(mineKey);box.innerHTML=note("bad","موعدك السابق انلغى. تكدر تحجز موعد جديد.");return}
-    box.innerHTML='<div class="mine-box">لقد حجزت موعدك<br><b>يوم '+esc(fmt(b.day))+' الساعة '+esc(t12(b.time))+'</b><br><small>باسم '+esc(b.name)+'</small>'+
+    box.innerHTML='<div class="mine-box">لقد حجزت موعدك<br><b>يوم '+esc(fmt(b.day))+' الساعة '+esc(t12(b.time))+'</b><br><small>'+(KIND==="doctor"||KIND==="dentist"?"اسم المريض":KIND==="salon"?"اسم الزبونة":KIND==="lawyer"?"اسم الموكّل":KIND==="gym"?"اسم المشترك":"اسم الزبون")+': '+esc(b.name)+'</small>'+
       (rdy?'<div class="note good">'+esc(readyLabel()+": "+readyText(rdy))+'</div>':"")+
       (closed.includes(b.day)?note("bad","المحل مغلق يوم موعدك. تواصل وية المحل أو غيّر موعدك."):"")+
       (past?'</div>':'<div class="row"><button class="alt" id="chg">تغيير الموعد</button><button class="alt danger" id="cxl">إلغاء الحجز</button></div></div>');
@@ -534,7 +539,7 @@ async function customer(shopId){
   }
   function slotInfo(t,name,isMine){
     const el=$("slotInfo");
-    el.innerHTML='<div class="note '+(isMine?"good":"")+'">'+(isMine?"هذا حجزك باسم "+esc(name):"هذا الوقت محجوز")+"، يوم "+esc(fmt(day))+" الساعة "+esc(t12(t))+
+    el.innerHTML='<div class="note '+(isMine?"good":"")+'">'+(isMine?"هذا حجزك، "+(KIND==="doctor"||KIND==="dentist"?"اسم المريض":KIND==="salon"?"اسم الزبونة":KIND==="lawyer"?"اسم الموكّل":KIND==="gym"?"اسم المشترك":"اسم الزبون")+": "+esc(name):"هذا الوقت محجوز")+"، يوم "+esc(fmt(day))+" الساعة "+esc(t12(t))+
       (isMine?'<div class="row"><button class="alt" id="chg2">تغيير الموعد</button><button class="alt danger" id="cxl2">إلغاء الحجز</button></div>':"")+'</div>';
     if(isMine){$("chg2").onclick=startChange;$("cxl2").onclick=cancelMine}
   }
@@ -607,6 +612,7 @@ async function owner(shopId){
   };
 }
 async function ownerHome(shopId,shop,pin){
+  await loadPrices();
   if(shop.sub_days==null){try{shop.sub_days=await rpc("shop_sub_days",{p_shop:shopId})}catch(e){}}
   KIND=shop.kind||"";
   setHead(HEADW[shop.kind||"barber"]||"المحل",shop.name,shop.photo);
@@ -622,12 +628,13 @@ async function ownerHome(shopId,shop,pin){
     let n=0;try{n=await rpc("owner_pending_count",{p_shop:shopId,p_pin:pin})||0}catch(e){}
     app.innerHTML='<div class="lock-box"><h2>انتهى اشتراكك</h2><p>أرجو التجديد حتى ترجع تشتغل الصفحة.</p>'+
       (n>0?'<p class="lock-n">لديك '+n+' حجوزات من '+w.peopleAll+'</p><p class="hint">تگدر تشوفها بعد التجديد.</p>':'')+
+      (()=>{const L=SUBS.filter(x=>x[0]!==FREE&&priceTxt(x[0]));return L.length?'<div class="pr-list"><b>أسعار الاشتراك</b>'+L.map(x=>'<div>'+x[1]+': '+priceTxt(x[0])+'</div>').join("")+'</div>':''})()+
       '<p>للتجديد: '+esc(OWNER_NAME)+'</p><div class="row" style="justify-content:center"><a class="btn" href="tel:'+OWNER_PHONE+'">اتصل <span class="ltr">'+OWNER_PHONE+'</span></a>'+
       '<a class="alt" target="_blank" rel="noopener" href="'+wa(OWNER_PHONE)+'?text='+encodeURIComponent("أهلًا، أريد أجدد اشتراك "+shop.name)+'">راسلني بالواتساب</a></div></div>';
     return}
   {const old=document.getElementById("subCorner");if(old)old.remove();
-   const sc=document.createElement("div");sc.id="subCorner";sc.className="sub-corner "+(active?(left<=3?"warn":"ok"):"bad");
-   sc.innerHTML=active?(shop.sub_days?'<div>اشتراكك '+shop.sub_days+' يوم</div>':'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'
+   const sc=document.createElement("div");sc.id="subCorner";sc.className="sub-corner "+(active?(left<=3&&shop.sub_days!==FREE?"warn":"ok"):"bad");
+   sc.innerHTML=active&&shop.sub_days===FREE?'<div><b>مجاني</b></div>':active?(shop.sub_days?'<div>اشتراكك '+subName(shop.sub_days)+'</div>'+(priceTxt(shop.sub_days)?'<div>'+priceTxt(shop.sub_days)+'</div>':''):'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'
      :'<div><b>انتهى اشتراكك</b></div><div>أرجو التجديد</div><div class="ltr">'+OWNER_PHONE+'</div>';
    document.querySelector("header").appendChild(sc)}
   app.innerHTML='<div id="newB"></div>'+
@@ -638,13 +645,13 @@ async function ownerHome(shopId,shop,pin){
     '<h2>عطلتك الثابتة</h2><details class="hrs-box" id="offD"><summary id="offSum"></summary><p class="hint">اختار الأيام اللي ما تداوم بيها كل أسبوع، وما ينحجز بيها.</p><div class="offs" id="offs"></div><button class="alt" id="offSave">احفظ أيام العطلة</button></details>'+
     '<h2>عن نفسك</h2><p class="hint">'+(ABOUTX[KIND]||ABOUTX.shop)+' يطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="abT" rows="4"></textarea><button class="alt" id="abSave">احفظ</button>'+
     '<h2>'+(SVCX[KIND]||SVCX.shop)[0]+'</h2><p class="hint">اكتب أسعارك إنت، كل شي بسطر. تطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="svcT" rows="4"></textarea><button class="alt" id="svcSave">احفظ الخدمات</button>'+
-    '<h2>الإحصائيات</h2><div id="stats" class="stats"></div>'+
+    '<h2>الإحصائيات</h2><p class="hint">اضغط على أي مربع حتى تشوف الأسماء.</p><div id="stats" class="stats"></div><div id="stList"></div>'+
     '<h2>صورتك الرئيسية</h2><div class="me-photo"><img id="myPhoto" alt="صورتك"><div class="row"><button class="alt" id="upMe">'+(shop.photo?"غيّر الصورة":"أضف صورتك")+'</button></div></div>'+
     '<p class="hint">تطلع كبيرة فوق بصفحة '+w.peopleAll+'، ويكدرون يفتحوها. من تختار الصورة، تكدر تكبّرها وتحرّكها قبل الحفظ.</p>'+
     '<h2>صورك الشخصية</h2><p class="hint">أضف لحد 3 صور إلك، وتطلع ل'+w.peopleAll+'.</p>'+
-    '<button class="alt" id="upM">أضف صورة إلك</button><div id="mMsg"></div><div class="me-list" id="gm" style="margin-top:10px"></div>'+
+    '<button class="alt" id="upM">أضف صور إلك</button><p class="hint">تگدر تختار أكثر من صورة مرة وحدة.</p><div id="mMsg"></div><div class="me-list" id="gm" style="margin-top:10px"></div>'+
     '<h2>'+w.galOwn+'</h2><p class="hint">'+w.galHint+'</p>'+
-    '<button class="alt" id="upG">أضف صورة</button><div id="gMsg"></div><div class="gallery" id="g" style="margin-top:10px"></div>'+
+    '<button class="alt" id="upG">أضف صور</button><p class="hint">تگدر تختار أكثر من صورة مرة وحدة.</p><div id="gMsg"></div><div class="gallery" id="g" style="margin-top:10px"></div>'+
     '<div class="info" style="margin-top:24px"><h2>شنو يقدم النظام؟</h2>'+
     '<p>'+(INFO[shop.kind]||INFO.barber)+'</p>'+
     '<p>'+(W(shop.kind).med?"المريض":(KIND==="salon"?"الزبونة":"الزبون"))+' يحجز من تلفونه بدون اتصال وبدون انتظار، ويشوف الأوقات الفارغة قدامه.</p>'+
@@ -665,8 +672,20 @@ async function ownerHome(shopId,shop,pin){
     try{const r=await rpc("owner_add_photo2",{p_shop:shopId,p_pin:pin,p_data:data,p_kind:kind});
       $(box).innerHTML=r==="full"?note("bad","وصلت "+max+" صورة. امسح صورة حتى تضيف غيرها."):"";loadG();
     }catch(e){$(box).innerHTML=note("bad","ما انرفعت الصورة. جرب مرة ثانية.")}}
-  $("upM").onclick=()=>pickFile(f=>editPhoto(f,d=>addPh(d,"me","mMsg",3)));
-  $("upG").onclick=()=>pickFile(async f=>{try{addPh(await shrink(f,800),"work","gMsg",12)}catch(e){$("gMsg").innerHTML=note("bad","ما انفتحت الصورة. جرب صورة ثانية.")}});
+  $("upM").onclick=()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=true;
+    inp.onchange=async()=>{const fs=[...inp.files].slice(0,3);if(!fs.length)return;const box=$("mMsg");let ok=0,bad=0,full=false;
+      for(let i=0;i<fs.length;i++){box.innerHTML=note("","جاري رفع الصور… "+(i+1)+" من "+fs.length);
+        try{const d=await shrink(fs[i],800);const r=await rpc("owner_add_photo2",{p_shop:shopId,p_pin:pin,p_data:d,p_kind:"me"});
+          if(r==="full"){full=true;break}ok++}catch(e){bad++}}
+      box.innerHTML=note(full||bad?"bad":"good","انرفعت "+ok+" صورة."+(full?" وصلت 3 صور، امسح صورة حتى تضيف غيرها.":"")+(bad?" "+bad+" صورة ما انرفعت.":""));loadG()};
+    inp.click()};
+  $("upG").onclick=()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.multiple=true;
+    inp.onchange=async()=>{const fs=[...inp.files];if(!fs.length)return;const box=$("gMsg");let ok=0,bad=0,full=false;
+      for(let i=0;i<fs.length;i++){box.innerHTML=note("","جاري رفع الصور… "+(i+1)+" من "+fs.length);
+        try{const d=await shrink(fs[i],800);const r=await rpc("owner_add_photo2",{p_shop:shopId,p_pin:pin,p_data:d,p_kind:"work"});
+          if(r==="full"){full=true;break}ok++}catch(e){bad++}}
+      box.innerHTML=note(full||bad?"bad":"good","انرفعت "+ok+" صورة."+(full?" وصلت 12 صورة، امسح صور حتى تضيف غيرها.":"")+(bad?" "+bad+" صورة ما انرفعت.":""));loadG()};
+    inp.click()};
   async function loadG(){
     let ph=[];try{ph=(await rpc("shop_photos2",{p_shop:shopId}))||[]}catch(e){return}
     $("g").innerHTML="";$("gm").innerHTML="";
@@ -777,8 +796,28 @@ async function ownerHome(shopId,shop,pin){
   }
   async function stats(){
     let s=null;try{s=await rpc("owner_stats",{p_shop:shopId,p_pin:pin})}catch(e){}
-    $("stats").innerHTML=s?'<div><b>'+(s.month||0)+'</b><small>حجز هذا الشهر</small></div><div><b>'+(s.done||0)+'</b><small>خلص منهم</small></div>'+
-      '<div><b>'+(s.cancel||0)+'</b><small>انلغى</small></div><div><b>'+(s.last||0)+'</b><small>الشهر الماضي</small></div>':'<p class="hint">ما گدرنا نجيب الإحصائيات.</p>';
+    $("stats").innerHTML=s?'<div data-k="month"><b>'+(s.month||0)+'</b><small>حجز هذا الشهر</small></div><div data-k="done"><b>'+(s.done||0)+'</b><small>خلص منهم</small></div>'+
+      '<div data-k="cancel"><b>'+(s.cancel||0)+'</b><small>انلغى</small></div><div data-k="last"><b>'+(s.last||0)+'</b><small>الشهر الماضي</small></div>'+
+      '<div data-k="done" class="st-money"><b>'+Number(s.money||0).toLocaleString("en")+'</b><small>مجموع المبالغ هذا الشهر (دينار)</small></div>':'<p class="hint">ما گدرنا نجيب الإحصائيات.</p>';
+    $("stats").querySelectorAll("[data-k]").forEach(el=>el.onclick=()=>stList(el.dataset.k,el.querySelector("small").textContent));
+  }
+  async function stList(k,title){
+    const el=$("stList");el.innerHTML='<p class="hint">جاري التحميل…</p>';
+    let L=[];try{L=(await rpc("owner_month_list",{p_shop:shopId,p_pin:pin,p_which:k}))||[]}catch(e){el.innerHTML=note("bad","تأكد إنك شغّلت آخر كود بـ Supabase.");return}
+    const sum=L.reduce((a,x)=>a+(+x.price||0),0);
+    el.innerHTML='<div class="hrs-box"><b>'+esc(title)+' ('+L.length+')</b>'+(k==="done"?'<div>المجموع: <b>'+sum.toLocaleString("en")+'</b> دينار</div>':'')+
+      (L.length?'':'<p class="hint">ماكو أسماء.</p>')+'<ul class="list" id="stUl"></ul><button class="alt" id="stX">سد القائمة</button></div>';
+    L.forEach(x=>{const li=document.createElement("li");
+      li.innerHTML='<span class="time">'+esc(fmt(x.day))+'<br>'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+
+        (x.phone&&x.phone!=="-"?'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small>':'')+'</span>'+
+        (x.status==="cancel"?'<span class="tag">انلغى</span>':x.status==="done"?'<span class="tag ok">خلص</span>':'');
+      if(x.status==="done"){const box=document.createElement("span");box.className="row";box.style.marginTop="0";
+        box.innerHTML='<input class="pr" inputmode="numeric" dir="ltr" placeholder="المبلغ" style="width:110px" value="'+(x.price||"")+'"><button class="alt">احفظ</button>';
+        box.querySelector("button").onclick=async()=>{const v=box.querySelector("input").value.replace(/\D/g,"");
+          try{await rpc("owner_set_price",{p_shop:shopId,p_pin:pin,p_day:x.day,p_time:x.time,p_price:v?+v:null});stats();stList(k,title)}catch(e){alert("ما انحفظ.")}};
+        li.appendChild(box)}
+      $("stUl").appendChild(li)});
+    $("stX").onclick=()=>{el.innerHTML=""};
   }
   function offsUI(){
     const names=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],cur=String((SCHED&&SCHED.off)||"").split(",");
@@ -838,6 +877,8 @@ async function ownerHome(shopId,shop,pin){
   }
   {const cp=$("cpy");if(cp){const rw=cp.closest(".row"),hn=rw.previousElementSibling,hd=hn&&hn.previousElementSibling;
     [hd,hn,rw,$("qrBox")].forEach(x=>{if(x)app.appendChild(x)})}}
+  {const ct=[...app.querySelectorAll(".contact")].filter(x=>!x.classList.contains("cinfo")).pop(),ot=$("out");
+    if(ct)app.appendChild(ct);if(ot)app.appendChild(ot)}
   makeQR(cLink,shop.name);
   if(KIND==="salon"){femApply(app,FEM_OWNER);femApply(document.querySelector("header"),FEM_OWNER)}
   draw().then(offsUI);loadG();stats();newCheck();setInterval(newCheck,60000);
@@ -856,7 +897,8 @@ async function admin(){
     store("admin-pin",pin);adminHome(pin);
   };
 }
-function adminHome(pin){
+async function adminHome(pin){
+  await loadPrices();
   const base=location.origin+location.pathname;
   app.innerHTML='<h2>إضافة مدير ثانوي جديد</h2>'+
     '<label for="an">اسم المحل</label><input id="an" placeholder="اسم صاحب المحل أو اسم المحل">'+
@@ -865,10 +907,16 @@ function adminHome(pin){
     '<label for="ak">الرقم السري لصاحب المحل</label><input id="ak" inputmode="numeric" dir="ltr" placeholder="مثلًا: 4821">'+
     '<label for="am">مدة الاشتراك</label><select id="am">'+subOpts(30)+'</select>'+
     '<button class="btn" id="add">أضف مدير ثانوي</button><div id="msg"></div>'+
+    '<details id="prD"><summary><b>أسعار الاشتراك</b> · اضغط حتى تحددها</summary><p class="hint">اكتب سعر كل مدة بالدينار. اللي تخليها فارغة ما يطلع لها سعر.</p><div id="prBox">'+
+      SUBS.filter(x=>x[0]!==FREE).map(x=>'<label>'+x[1]+'</label><input class="prI" data-d="'+x[0]+'" inputmode="numeric" dir="ltr" value="'+(+PRICES[x[0]]>0?+PRICES[x[0]]:"")+'">').join("")+
+      '</div><button class="btn" id="prSave">احفظ الأسعار</button><div id="prMsg"></div></details>'+
     '<h2>المحلات المشتركة</h2><ul class="list" id="list"></ul>'+
     '<button class="alt" id="out" style="margin-top:16px">اطلع من الحساب</button>'+
     '<div class="contact">صاحب إدارة البرنامج: '+esc(OWNER_NAME)+'<br><span class="ltr">'+OWNER_PHONE+'</span></div>';
   $("out").onclick=()=>{store("admin-pin");location.reload()};
+  $("prSave").onclick=async()=>{const o={};document.querySelectorAll(".prI").forEach(i=>{const v=parseInt(i.value.replace(/[^0-9]/g,""),10);if(v>0)o[i.dataset.d]=v});
+    try{await rpc("admin_set_prices",{p_pin:pin,p_prices:o});PRICES=o;$("prMsg").innerHTML=note("good","انحفظت الأسعار.");$("am").innerHTML=subOpts(30);draw()}
+    catch(e){$("prMsg").innerHTML=note("bad","ما انحفظت. تأكد شغّلت ملف Supabase الجديد.")}};
   let allShops=[];
   $("add").onclick=async()=>{
     const n=$("an").value.trim(),p=$("ap").value.trim(),k=$("ak").value.trim(),m=+$("am").value,t=$("at").value;
@@ -886,7 +934,7 @@ function adminHome(pin){
     ul.innerHTML=shops.length?"":'<li class="empty">ماكو محلات بعد. أضف أول محل من فوق.</li>';
     {let eb=document.getElementById("expBox");if(!eb){eb=document.createElement("div");eb.id="expBox";ul.parentNode.insertBefore(eb,ul)}
      const dl=x=>Math.round((new Date(x.expires+"T00:00:00")-new Date(today()+"T00:00:00"))/864e5)+1;
-     const near=shops.filter(x=>dl(x)<=3).sort((a,b)=>dl(a)-dl(b));
+     const near=shops.filter(x=>x.sub_days!==FREE&&dl(x)<=3).sort((a,b)=>dl(a)-dl(b));
      eb.innerHTML=near.length?'<div class="exp-box"><b>اشتراكات قربت تخلص ('+near.length+')</b>'+near.map(x=>{const n=dl(x);
        const t=n<=0?"خلص اشتراكك":(n===1?"آخر يوم اليوم":"باقي "+n+" أيام");
        const m="أهلًا "+x.name+"، "+(n<=0?"انتهى اشتراك صفحتك بنظام الحجز":"اشتراك صفحتك بنظام الحجز "+(n===1?"ينتهي اليوم":"باقي عليه "+n+" أيام"))+". حتى تجدده تواصل ويايه. "+OWNER_NAME+" "+OWNER_PHONE;
@@ -900,8 +948,8 @@ function adminHome(pin){
         '<small>النوع: '+esc(TYPES[s.kind]||"حلاق")+'</small>'+
         '<small>الرقم السري: <span class="ltr">'+esc(s.barber_pin)+'</span></small>'+
         (()=>{const f=SUBS.find(y=>y[0]===s.sub_days),n=Math.round((new Date(s.expires+"T00:00:00")-new Date(today()+"T00:00:00"))/864e5)+1;
-          return '<small>الاشتراك: '+(f?f[1]:(s.sub_days?s.sub_days+" يوم":"—"))+' · '+(n>0?(n===1?"باقي يوم واحد":"باقي "+n+" يوم"):"منتهي")+'</small>'})()+'</span>'+
-        '<span class="tag '+(active?"ok":"bad")+'">'+(active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+'</span>';
+          return '<small>الاشتراك: '+(f?f[1]+(priceTxt(f[0])?" ("+priceTxt(f[0])+")":""):(s.sub_days?s.sub_days+" يوم":"—"))+(s.sub_days===FREE?"":' · '+(n>0?(n===1?"باقي يوم واحد":"باقي "+n+" يوم"):"منتهي"))+'</small>'})()+'</span>'+
+        '<span class="tag '+(active?"ok":"bad")+'">'+(active&&s.sub_days===FREE?"مجاني":active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+'</span>';
       const row=document.createElement("div");row.className="row";row.style.width="100%";
       const mk=(t,f)=>{const b=document.createElement("button");b.className="alt";b.textContent=t;b.onclick=f;row.appendChild(b)};
       mk("نسخ "+w.link,()=>copy(cLink));
@@ -914,7 +962,7 @@ function adminHome(pin){
         '<label>رقم التلفون</label><input class="eP" inputmode="tel" dir="ltr">'+
         '<label>الرقم السري</label><input class="eK" inputmode="numeric" dir="ltr">'+
         '<label>النوع</label><select class="eT"></select>'+
-        '<label>الاشتراك من اليوم (حالياً '+(active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+')</label><select class="eD"><option value="0">بدون تغيير</option>'+subOpts(-1)+'</select>'+
+        '<label>الاشتراك من اليوم (حالياً '+(active&&s.sub_days===FREE?"مجاني":active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+')</label><select class="eD"><option value="0">بدون تغيير</option>'+subOpts(-1)+'</select>'+
         '<div class="row"><button class="alt eS">احفظ التعديل</button><button class="alt eC">رجوع</button></div>';
       ed.querySelector(".eN").value=s.name;ed.querySelector(".eP").value=s.phone||"";ed.querySelector(".eK").value=s.barber_pin;
       const eT=ed.querySelector(".eT");
