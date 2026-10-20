@@ -315,7 +315,7 @@ const INFO={barber:"حجز مواعيد أونلاين للحلاقين.",doctor
 const FEM_OWNER=[["صورتك الرئيسية","صورتج الرئيسية"],["صورك الشخصية","صورج الشخصية"],["أضف صورتك","أضيفي صورتج"],["غيّر الصورة","غيّري الصورة"],["أضف لحد 3 صور إلك","أضيفي لحد 3 صور إلج"],["أضف صور إلك","أضيفي صور إلج"],["أضف صور","أضيفي صور"],["تگدر تختار","تگدرين تختارين"],
  ["عن نفسك","عن نفسج"],["اكتب أسعارك إنت","اكتبي أسعارج إنتِ"],["عطلتك الثابتة","عطلتج الثابتة"],["عطلتك:","عطلتج:"],["ما عندك عطلة ثابتة","ما عندج عطلة ثابتة"],["اضغط حتى تغيّرها","اضغطي حتى تغيّرينها"],
  ["اختار الأيام اللي ما تداوم بيها","اختاري الأيام اللي ما تداومين بيها"],["دوامك","دوامج"],["ما حددت الدوام","ما حددتي الدوام"],["حدد دوامك","حددي دوامج"],["إذا تريد تداوم بيه، حدد","إذا تريدين تداومين بيه، حددي"],["يوم عطلتك","يوم عطلتج"],
- ["انتهى اشتراكك","انتهى اشتراكج"],["اشتراكك","اشتراكج"],["لديك","لديج"],["تگدر تشوفها","تگدرين تشوفينها"],["حتى ترجع تشتغل","حتى ترجع تشتغل"],["دزه ل","دزيه ل"],["أو حطه بالانستغرام","أو حطيه بالانستغرام"],
+ ["انتهى اشتراكك","انتهى اشتراكج"],["تلگاهم","تلگينهم"],["ما كتبت","ما كتبتي"],["حتى تكتب","حتى تكتبين"],["حتى تشوفها أو تعدّلها","حتى تشوفينها أو تعدّلينها"],["معلوماتك","معلوماتج"],["أسعارك مكتوبة","أسعارج مكتوبة"],["اشتراكك","اشتراكج"],["لديك","لديج"],["تگدر تشوفها","تگدرين تشوفينها"],["حتى ترجع تشتغل","حتى ترجع تشتغل"],["دزه ل","دزيه ل"],["أو حطه بالانستغرام","أو حطيه بالانستغرام"],
  ["عندك صفحة خاصة برقم سري تشوف بيها كل مواعيدك، وتضيف صورتك وصور شغلك، وتغلق","عندج صفحة خاصة برقم سري تشوفين بيها كل مواعيدج، وتضيفين صورتج وصور شغلج، وتغلقين"],
  ["من تختار الصورة، تكدر تكبّرها وتحرّكها","من تختارين الصورة، تگدرين تكبّرينها وتحرّكينها"],["اختار الساعة","اختاري الساعة"],["ذكّره بالواتساب","ذكّريها بالواتساب"],["بلّغه","بلّغيها"],["شيله","شيليها"],["اطلع من الحساب","اطلعي من الحساب"],["جاه للمحل","جت للصالون"],["مواعيدك","مواعيدج"]];
 const FEM_CUST=[["احجز موعدك","احجزي موعدج"],["تحجز من تلفونك","تحجزين من تلفونج"],["تشوف الأوقات الفارغة والأيام المتاحة قدامك","تشوفين الأوقات الفارغة والأيام المتاحة قدامج"],["تختار يومك","تختارين يومج"],
@@ -355,7 +355,10 @@ function today(){return ymd(new Date())}
 function nowHM(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")}
 function fmt(s){const [y,m,d]=s.split("-");return dayNames[new Date(+y,m-1,+d).getDay()]+" "+(+d)+"/"+(+m)}
 const SUBS=[[1,"يوم واحد (للتجربة)"],[15,"15 يوم"],[30,"شهر"],[45,"شهر ونص"],[60,"شهرين"],[75,"شهرين ونص"],[90,"3 أشهر"],[120,"4 أشهر"],[180,"6 أشهر"],[365,"سنة"],[36500,"مجاني"]];
-const FREE=36500;let PRICES={};
+const FREE=36500;
+function freeDays(exp){return Math.round((new Date(today()+"T00:00:00")-new Date(exp+"T00:00:00"))/864e5)+FREE}
+function freeTxt(exp){const n=freeDays(exp);return n<=1?"أول يوم":"صارله "+n+" يوم"}
+function freeDays(exp){return Math.max(1,Math.round((new Date(today()+"T00:00:00")-new Date(exp+"T00:00:00"))/864e5)+FREE)}let PRICES={};
 async function loadPrices(){try{PRICES=(await rpc("sub_prices",{}))||{}}catch(e){PRICES={}}}
 function priceTxt(d){const v=+PRICES[d];return v>0?v.toLocaleString("en")+" دينار":""}
 function subOpts(sel){return SUBS.map(x=>'<option value="'+x[0]+'"'+(x[0]===sel?" selected":"")+'>'+x[1]+(priceTxt(x[0])?" — "+priceTxt(x[0]):"")+'</option>').join("")}
@@ -634,17 +637,17 @@ async function ownerHome(shopId,shop,pin){
     return}
   {const old=document.getElementById("subCorner");if(old)old.remove();
    const sc=document.createElement("div");sc.id="subCorner";sc.className="sub-corner "+(active?(left<=3&&shop.sub_days!==FREE?"warn":"ok"):"bad");
-   sc.innerHTML=active&&shop.sub_days===FREE?'<div><b>مجاني</b></div>':active?(shop.sub_days?'<div>اشتراكك '+subName(shop.sub_days)+'</div>'+(priceTxt(shop.sub_days)?'<div>'+priceTxt(shop.sub_days)+'</div>':''):'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'
+   sc.innerHTML=active&&shop.sub_days===FREE?'<div><b>مجاني</b></div><div>صار له '+freeDays(shop.expires)+' يوم</div>':active?(shop.sub_days?'<div>اشتراكك '+subName(shop.sub_days)+'</div>'+(priceTxt(shop.sub_days)?'<div>'+priceTxt(shop.sub_days)+'</div>':''):'')+'<div><b>باقي '+left+' يوم</b></div><div>ينتهي '+shop.expires.split("-").reverse().join("/")+'</div>'
      :'<div><b>انتهى اشتراكك</b></div><div>أرجو التجديد</div><div class="ltr">'+OWNER_PHONE+'</div>';
    document.querySelector("header").appendChild(sc)}
   app.innerHTML='<div id="newB"></div>'+
     '<h2>رابط الحجز ل'+w.people+'</h2><p class="hint">دزه ل'+w.people+' أو حطه بالانستغرام، وكل واحد يحجز منه.</p>'+
     '<div class="row"><button class="alt" id="cpy">نسخ '+w.link+'</button><a class="alt" id="shr" target="_blank" rel="noopener">شارك بالواتساب</a></div>'+
     '<div class="qr-box" id="qrBox"><p class="hint">هذا باركود الحجز. اطبعه وحطه بالمحل، و'+w.peopleAll+' يصورونه بالكاميرا ويفتح لهم رابط الحجز طول.</p><div id="qr"></div><button class="btn" id="qrDl">حمّل الباركود صورة</button></div>'+
-    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><div id="hrs"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul><div id="wait"></div>'+
+    '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><div id="hrs"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul><p class="hint" id="doneHint"></p><div id="wait"></div>'+
     '<h2>عطلتك الثابتة</h2><details class="hrs-box" id="offD"><summary id="offSum"></summary><p class="hint">اختار الأيام اللي ما تداوم بيها كل أسبوع، وما ينحجز بيها.</p><div class="offs" id="offs"></div><button class="alt" id="offSave">احفظ أيام العطلة</button></details>'+
-    '<h2>عن نفسك</h2><p class="hint">'+(ABOUTX[KIND]||ABOUTX.shop)+' يطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="abT" rows="4"></textarea><button class="alt" id="abSave">احفظ</button>'+
-    '<h2>'+(SVCX[KIND]||SVCX.shop)[0]+'</h2><p class="hint">اكتب أسعارك إنت، كل شي بسطر. تطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="svcT" rows="4"></textarea><button class="alt" id="svcSave">احفظ الخدمات</button>'+
+    '<h2>عن نفسك</h2><details class="hrs-box" id="abD"><summary id="abSum"></summary><p class="hint">'+(ABOUTX[KIND]||ABOUTX.shop)+' يطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="abT" rows="4"></textarea><button class="alt" id="abSave">احفظ</button></details>'+
+    '<h2>'+(SVCX[KIND]||SVCX.shop)[0]+'</h2><details class="hrs-box" id="svcD"><summary id="svcSum"></summary><p class="hint">اكتب أسعارك إنت، كل شي بسطر. تطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="svcT" rows="4"></textarea><button class="alt" id="svcSave">احفظ الخدمات</button></details>'+
     '<h2>الإحصائيات</h2><p class="hint">اضغط على أي مربع حتى تشوف الأسماء.</p><div id="stats" class="stats"></div><div id="stList"></div>'+
     '<h2>صورتك الرئيسية</h2><div class="me-photo"><img id="myPhoto" alt="صورتك"><div class="row"><button class="alt" id="upMe">'+(shop.photo?"غيّر الصورة":"أضف صورتك")+'</button></div></div>'+
     '<p class="hint">تطلع كبيرة فوق بصفحة '+w.peopleAll+'، ويكدرون يفتحوها. من تختار الصورة، تكدر تكبّرها وتحرّكها قبل الحفظ.</p>'+
@@ -827,9 +830,11 @@ async function ownerHome(shopId,shop,pin){
     $("offSave").onclick=async()=>{const v=[...$("offs").querySelectorAll("input:checked")].map(x=>x.value).join(",");
       try{await rpc("owner_set_off",{p_shop:shopId,p_pin:pin,p_off:v});$("offD").open=false;await draw();offsUI()}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
     $("abT").value=(SCHED&&SCHED.about)||"";
-    $("abSave").onclick=async()=>{try{await rpc("owner_set_about",{p_shop:shopId,p_pin:pin,p_text:$("abT").value.slice(0,2000)});alert("انحفظ.")}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
-    $("svcT").value=(SCHED&&SCHED.services)||"";
-    $("svcSave").onclick=async()=>{try{await rpc("owner_set_services",{p_shop:shopId,p_pin:pin,p_text:$("svcT").value.slice(0,1500)});alert("انحفظت الخدمات.")}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+    const sumUI=()=>{$("abSum").textContent=$("abT").value.trim()?"معلوماتك مكتوبة · اضغط حتى تشوفها أو تعدّلها":"ما كتبت شي بعد · اضغط حتى تكتب";
+      $("svcSum").textContent=$("svcT").value.trim()?"أسعارك مكتوبة · اضغط حتى تشوفها أو تعدّلها":"ما كتبت أسعار بعد · اضغط حتى تكتب"};
+    $("abSave").onclick=async()=>{try{await rpc("owner_set_about",{p_shop:shopId,p_pin:pin,p_text:$("abT").value.slice(0,2000)});$("abD").open=false;sumUI()}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
+    $("svcT").value=(SCHED&&SCHED.services)||"";sumUI();
+    $("svcSave").onclick=async()=>{try{await rpc("owner_set_services",{p_shop:shopId,p_pin:pin,p_text:$("svcT").value.slice(0,1500)});$("svcD").open=false;sumUI()}catch(e){alert("ما انحفظ. تأكد إنك شغّلت آخر كود بـ Supabase.")}};
   }
   async function draw(){
     try{closed=(await rpc("closed_list",{p_shop:shopId}))||[]}catch(e){}
@@ -847,8 +852,10 @@ async function ownerHome(shopId,shop,pin){
     const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let rows=[];try{rows=(await rpc("barber_bookings",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال. حدّث الصفحة.</li>';return}
     rows=rows.filter(x=>x.status!=="cancel");
-    $("cnt").textContent=rows.length+" موعد، خلص منهم "+rows.filter(x=>x.status==="done").length;
-    ul.innerHTML=rows.length?"":'<li class="empty">ماكو مواعيد بهذا اليوم بعد.</li>';
+    
+    const doneN=rows.filter(x=>x.status==="done").length,openN=rows.length-doneN;
+    ul.innerHTML=openN?"":'<li class="empty">'+(doneN?"كل المواعيد خلصت.":"ماكو مواعيد بهذا اليوم بعد.")+'</li>';
+    $("cnt").textContent=openN?openN+" موعد ما خلص بعد":"المواعيد";$("doneHint").textContent=doneN?"خلص "+doneN+" موعد بهذا اليوم، تلگاهم بالإحصائيات بمربع «خلص منهم».":"";
     rows.forEach(x=>{const li=document.createElement("li");
       li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+(x.phone&&x.phone!=="-"?'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small>':'<small>حجز من يم '+(HEADW[KIND]||"المحل")+'</small>')+'</span>';
       const row=document.createElement("span");row.className="row";row.style.marginTop="0";
@@ -868,9 +875,9 @@ async function ownerHome(shopId,shop,pin){
         const c=document.createElement("button");c.className="alt";c.textContent="ألغِ";
         c.onclick=async()=>{if(!confirm("تلغي موعد "+x.name+"؟"))return;await rpc("barber_set_status",{p_shop:shopId,p_pin:pin,p_id:x.id,p_status:"cancel"}).catch(()=>{});draw()};
         row.append(d,c)}
-      li.appendChild(row);ul.appendChild(li)});
+      li.appendChild(row);if(x.status!=="done")ul.appendChild(li)});
     if(readyKind()==="date"){let pk=[];try{pk=(await rpc("owner_pickups",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){}
-      if(pk.length){if(!rows.length)ul.innerHTML="";const hd=document.createElement("li");hd.className="empty";hd.textContent="استلامات هذا اليوم: "+pk.length;ul.appendChild(hd);
+      if(pk.length){if(!openN)ul.innerHTML="";const hd=document.createElement("li");hd.className="empty";hd.textContent="استلامات هذا اليوم: "+pk.length;ul.appendChild(hd);
         pk.forEach(x=>{const li=document.createElement("li");const t=(x.ready||"").split(" ")[1];
           li.innerHTML='<span class="time">'+(t?esc(hm12(t)):"استلام")+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+'<small>حجز يوم '+esc(fmt(x.day))+' · <a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small></span><span class="tag ok">استلام</span>';
           ul.appendChild(li)})}}
@@ -948,8 +955,8 @@ async function adminHome(pin){
         '<small>النوع: '+esc(TYPES[s.kind]||"حلاق")+'</small>'+
         '<small>الرقم السري: <span class="ltr">'+esc(s.barber_pin)+'</span></small>'+
         (()=>{const f=SUBS.find(y=>y[0]===s.sub_days),n=Math.round((new Date(s.expires+"T00:00:00")-new Date(today()+"T00:00:00"))/864e5)+1;
-          return '<small>الاشتراك: '+(f?f[1]+(priceTxt(f[0])?" ("+priceTxt(f[0])+")":""):(s.sub_days?s.sub_days+" يوم":"—"))+(s.sub_days===FREE?"":' · '+(n>0?(n===1?"باقي يوم واحد":"باقي "+n+" يوم"):"منتهي"))+'</small>'})()+'</span>'+
-        '<span class="tag '+(active?"ok":"bad")+'">'+(active&&s.sub_days===FREE?"مجاني":active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+'</span>';
+          return '<small>الاشتراك: '+(f?f[1]+(priceTxt(f[0])?" ("+priceTxt(f[0])+")":""):(s.sub_days?s.sub_days+" يوم":"—"))+(s.sub_days===FREE?' · '+freeTxt(s.expires):' · '+(n>0?(n===1?"باقي يوم واحد":"باقي "+n+" يوم"):"منتهي"))+'</small>'})()+'</span>'+
+        '<span class="tag '+(active?"ok":"bad")+'">'+(active&&s.sub_days===FREE?"مجاني · صار له "+freeDays(s.expires)+" يوم":active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+'</span>';
       const row=document.createElement("div");row.className="row";row.style.width="100%";
       const mk=(t,f)=>{const b=document.createElement("button");b.className="alt";b.textContent=t;b.onclick=f;row.appendChild(b)};
       mk("نسخ "+w.link,()=>copy(cLink));
@@ -962,7 +969,7 @@ async function adminHome(pin){
         '<label>رقم التلفون</label><input class="eP" inputmode="tel" dir="ltr">'+
         '<label>الرقم السري</label><input class="eK" inputmode="numeric" dir="ltr">'+
         '<label>النوع</label><select class="eT"></select>'+
-        '<label>الاشتراك من اليوم (حالياً '+(active&&s.sub_days===FREE?"مجاني":active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+')</label><select class="eD"><option value="0">بدون تغيير</option>'+subOpts(-1)+'</select>'+
+        '<label>الاشتراك من اليوم (حالياً '+(active&&s.sub_days===FREE?"مجاني · "+freeDays(s.expires)+" يوم":active?"لغاية "+s.expires.split("-").reverse().join("/"):"منتهي")+')</label><select class="eD"><option value="0">بدون تغيير</option>'+subOpts(-1)+'</select>'+
         '<div class="row"><button class="alt eS">احفظ التعديل</button><button class="alt eC">رجوع</button></div>';
       ed.querySelector(".eN").value=s.name;ed.querySelector(".eP").value=s.phone||"";ed.querySelector(".eK").value=s.barber_pin;
       const eT=ed.querySelector(".eT");
