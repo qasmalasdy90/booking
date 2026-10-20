@@ -225,8 +225,10 @@ header{padding-top:34px!important}
 textarea{width:100%;box-sizing:border-box;font:inherit;border-radius:10px;border:1px solid #c9d8da;padding:8px}
 header #hPhoto{position:absolute!important;top:8px;right:8px;width:62px;height:62px;z-index:3;border-width:2px}
 header{padding-top:22px!important}
-header>div:not(.waves){padding:0 70px}
-.sub-corner{top:3px!important;left:4px!important}
+header>div:not(.waves):not(.sub-corner){padding:0 70px}
+.sub-corner{top:3px!important;left:6px!important;padding:0!important;max-width:none!important;white-space:nowrap;font-size:.7rem!important}
+.qr-box{background:#fff;border:1px solid #d6e4e6;border-radius:12px;padding:12px;margin:8px 0;text-align:center}
+#qr{display:flex;justify-content:center;margin:8px 0}#qr img,#qr canvas{background:#fff;padding:8px;border-radius:8px}
 </style>
 </head>
 <body>
@@ -322,6 +324,17 @@ function femApply(root,list){const ar="\u0600-\u06FF";
   const fix=n=>{let t=n.nodeValue,o=t;rx.forEach(([r,b])=>{t=t.replace(r,(m,p)=>p+b)});if(t!==o)n.nodeValue=t};
   const walk=el=>{const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())fix(n)};
   walk(root);new MutationObserver(ms=>ms.forEach(m=>{m.addedNodes.forEach(n=>{if(n.nodeType===3)fix(n);else if(n.nodeType===1)walk(n)});if(m.type==="characterData")fix(m.target)})).observe(root,{childList:true,subtree:true,characterData:true})}
+function makeQR(link,name){
+  const go=()=>{const el=$("qr");if(!el)return;el.innerHTML="";
+    new QRCode(el,{text:link,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
+    $("qrDl").onclick=()=>{const c=el.querySelector("canvas");if(!c)return;
+      const W2=c.width+60,H2=c.height+110,cv=document.createElement("canvas");cv.width=W2;cv.height=H2;const x=cv.getContext("2d");
+      x.fillStyle="#fff";x.fillRect(0,0,W2,H2);x.drawImage(c,30,30);x.fillStyle="#14306B";x.font="bold 18px sans-serif";x.textAlign="center";x.direction="rtl";
+      x.fillText(name,W2/2,c.height+62);x.font="15px sans-serif";x.fillText("صوّر الباركود واحجز موعدك",W2/2,c.height+90);
+      const a=document.createElement("a");a.href=cv.toDataURL("image/png");a.download="باركود-الحجز.png";document.body.appendChild(a);a.click();a.remove()}};
+  if(window.QRCode)return go();
+  const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+  s.onload=go;s.onerror=()=>{const el=$("qr");if(el)el.innerHTML='<p class="hint">ما گدرنا نطلع الباركود، تأكد من الإنترنت.</p>'};document.head.appendChild(s)}
 const dayNames=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const app=document.getElementById("app");
 const q=new URLSearchParams(location.search);
@@ -620,6 +633,7 @@ async function ownerHome(shopId,shop,pin){
   app.innerHTML='<div id="newB"></div>'+
     '<h2>رابط الحجز ل'+w.people+'</h2><p class="hint">دزه ل'+w.people+' أو حطه بالانستغرام، وكل واحد يحجز منه.</p>'+
     '<div class="row"><button class="alt" id="cpy">نسخ '+w.link+'</button><a class="alt" id="shr" target="_blank" rel="noopener">شارك بالواتساب</a></div>'+
+    '<div class="qr-box" id="qrBox"><p class="hint">هذا باركود الحجز. اطبعه وحطه بالمحل، و'+w.peopleAll+' يصورونه بالكاميرا ويفتح لهم رابط الحجز طول.</p><div id="qr"></div><button class="btn" id="qrDl">حمّل الباركود صورة</button></div>'+
     '<h2>المواعيد</h2><div class="days" id="days"></div><div id="dayCtl"></div><div id="hrs"></div><button class="btn" id="walkBtn">+ احجز موعد ل'+w.people+' جاه للمحل</button><div id="walk"></div><h2 id="cnt"></h2><ul class="list" id="list"></ul><div id="wait"></div>'+
     '<h2>عطلتك الثابتة</h2><details class="hrs-box" id="offD"><summary id="offSum"></summary><p class="hint">اختار الأيام اللي ما تداوم بيها كل أسبوع، وما ينحجز بيها.</p><div class="offs" id="offs"></div><button class="alt" id="offSave">احفظ أيام العطلة</button></details>'+
     '<h2>عن نفسك</h2><p class="hint">'+(ABOUTX[KIND]||ABOUTX.shop)+' يطلع ل'+w.peopleAll+' بصفحة الحجز.</p><textarea id="abT" rows="4"></textarea><button class="alt" id="abSave">احفظ</button>'+
@@ -823,7 +837,8 @@ async function ownerHome(shopId,shop,pin){
           ul.appendChild(li)})}}
   }
   {const cp=$("cpy");if(cp){const rw=cp.closest(".row"),hn=rw.previousElementSibling,hd=hn&&hn.previousElementSibling;
-    [hd,hn,rw].forEach(x=>{if(x)app.appendChild(x)})}}
+    [hd,hn,rw,$("qrBox")].forEach(x=>{if(x)app.appendChild(x)})}}
+  makeQR(cLink,shop.name);
   if(KIND==="salon"){femApply(app,FEM_OWNER);femApply(document.querySelector("header"),FEM_OWNER)}
   draw().then(offsUI);loadG();stats();newCheck();setInterval(newCheck,60000);
 }
