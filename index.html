@@ -437,6 +437,8 @@ function shrink(file,max){return new Promise((res,rej)=>{const img=new Image();i
   const s=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");
   c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
   URL.revokeObjectURL(img.src);res(c.toDataURL("image/jpeg",0.75))};img.onerror=rej;img.src=URL.createObjectURL(file)})}
+let DVPH="";
+document.addEventListener("click",e=>{if(e.target&&e.target.id==="dvPh")pickFile(async f=>{try{DVPH=await shrink(f,800);const im=document.getElementById("dvPrev");im.src=DVPH;im.style.display="";e.target.textContent="غيّر الصورة"}catch(x){alert("ما انفتحت الصورة. جرب صورة ثانية.")}})});
 function pickFile(cb){const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=()=>i.files[0]&&cb(i.files[0]);i.click()}
 
 /* ================= الزبون ================= */
@@ -458,6 +460,8 @@ async function customer(shopId){
     '<p class="hint">'+w.nameHint+'</p>'+
     (AGE_KINDS.includes(shop.kind)?'<label for="ag">'+(w.peopleAll==="المرضى"?"عمر المريض":"العمر")+'</label><input id="ag" inputmode="numeric" dir="ltr" maxlength="3" placeholder="مثلًا: 35">':'')+
     ((shop.kind==="doctor"||shop.kind==="dentist")?'<label for="cm">نوع المرض أو سبب المراجعة</label><p class="hint">اكتب بكلامك شنو يوجعك أو ليش جاي.</p><input id="cm" maxlength="120" placeholder="'+(shop.kind==="dentist"?"مثلًا: ألم سن، حشوة، قلع، تنظيف، تقويم، تبييض، تركيب، لثة، مراجعة":"مثلًا: قلب، صدرية، باطنية، مفاصل، ألم ظهر، عظام، سكر، ضغط، جلدية، أطفال، نسائية، عيون، أنف وأذن وحنجرة، أعصاب، مراجعة")+'">':'')+
+    (shop.kind==="mobile"?'<label for="dv">نوع الموبايل (اختياري)</label><input id="dv" maxlength="60" placeholder="مثلًا: آيفون 13، سامسونگ A54، شاومي">'+
+      '<label>صورة الموبايل (اختياري)</label><p class="hint">صوّر الموبايل أو مكان العطل حتى يشوفه المحل قبل ما تجي.</p><div class="row"><button type="button" class="alt" id="dvPh">أضف صورة</button><img id="dvPrev" alt="" style="display:none;width:70px;height:70px;object-fit:cover;border-radius:10px"></div>':'')+
     '<label for="p">'+w.yourPhone+'</label><input id="p" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="07xxxxxxxxx">'+
     '<button class="btn" id="go">احجز الموعد</button><div id="msg"></div></div>'+
     '<div id="gal"></div>';
@@ -574,7 +578,7 @@ async function customer(shopId){
     if(!slot){msg.innerHTML=note("bad","اختار ساعة الموعد أولًا.");return}
     const age=needAge()?$("ag").value.trim():"";
     const ageE=(needAge()&&age&&(!/^\d+$/.test(age)||+age<1||+age>120))?"العمر لازم يكون رقم بين 1 و120.":"";
-    const cm=$("cm")?$("cm").value.trim():"";
+    const cm=$("cm")?$("cm").value.trim():($("dv")&&$("dv").value.trim()?"الموبايل: "+$("dv").value.trim():"");
     const cmE="";
     const ce=nameErr(name)||ageE||cmE||phoneErr(phone);if(ce){msg.innerHTML=note("bad",ce);return}
     const btn=$("go");btn.disabled=true;
@@ -584,6 +588,7 @@ async function customer(shopId){
       if(r==="ok"){
         if(cm)await rpc("set_complaint",{p_shop:shopId,p_day:day,p_time:slot,p_phone:phone,p_text:cm}).catch(()=>{});
         if(age)await rpc("set_age",{p_shop:shopId,p_day:day,p_time:slot,p_phone:phone,p_age:+age}).catch(()=>{});
+        if(DVPH)await rpc("set_device_photo",{p_shop:shopId,p_day:day,p_time:slot,p_phone:phone,p_data:DVPH}).catch(()=>{});DVPH="";
         const old=getMine();
         if(changing&&old)await rpc("customer_cancel",{p_shop:shopId,p_day:old.day,p_time:old.time,p_phone:old.phone}).catch(()=>{});
         store(mineKey,JSON.stringify({day,time:slot,name,phone}));
@@ -852,6 +857,7 @@ async function ownerHome(shopId,shop,pin){
     const ul=$("list");ul.innerHTML='<li class="empty">جاري التحميل…</li>';
     let rows=[];try{rows=(await rpc("barber_bookings",{p_shop:shopId,p_pin:pin,p_day:day}))||[]}catch(e){ul.innerHTML='<li class="empty">خلل بالاتصال. حدّث الصفحة.</li>';return}
     rows=rows.filter(x=>x.status!=="cancel");
+    let phIds=[];if(KIND==="mobile"){try{phIds=((await rpc("owner_photo_ids",{p_shop:shopId,p_pin:pin,p_day:day}))||[]).map(String)}catch(e){}}
     
     const doneN=rows.filter(x=>x.status==="done").length,openN=rows.length-doneN;
     ul.innerHTML=openN?"":'<li class="empty">'+(doneN?"كل المواعيد خلصت.":"ماكو مواعيد بهذا اليوم بعد.")+'</li>';
@@ -859,6 +865,10 @@ async function ownerHome(shopId,shop,pin){
     rows.forEach(x=>{const li=document.createElement("li");
       li.innerHTML='<span class="time">'+esc(t12(x.time))+'</span><span class="who">'+esc(x.name)+(x.age?' · العمر '+esc(x.age):'')+(x.complaint?'<small>'+esc(x.complaint)+'</small>':'')+(x.phone&&x.phone!=="-"?'<small><a class="ltr" href="tel:'+esc(x.phone)+'">'+esc(x.phone)+'</a></small>':'<small>حجز من يم '+(HEADW[KIND]||"المحل")+'</small>')+'</span>';
       const row=document.createElement("span");row.className="row";row.style.marginTop="0";
+      if(phIds.includes(String(x.id))){const pb=document.createElement("button");pb.className="alt";pb.textContent="صورة الموبايل";
+        pb.onclick=async()=>{let im=li.querySelector(".dv-img");if(im){im.remove();return}
+          try{const d=await rpc("owner_device_photo",{p_shop:shopId,p_pin:pin,p_id:x.id});if(!d)return;im=document.createElement("img");im.className="dv-img";im.src=d;
+            im.style.cssText="display:block;width:100%;max-width:320px;border-radius:12px;margin-top:8px";li.appendChild(im)}catch(e){alert("ما انفتحت الصورة.")}};row.appendChild(pb)}
       if(isClosed){const n=document.createElement("a");n.className="alt";n.textContent="بلّغه بالواتساب";n.target="_blank";n.rel="noopener";
         n.href=wa(x.phone)+"?text="+encodeURIComponent("أهلًا "+x.name+"، نعتذر منك، "+w.place+" مغلق يوم "+fmt(day)+" وموعدك كان الساعة "+t12(x.time)+". تكدر تحجز موعد جديد من هذا الرابط: "+cLink);
         row.appendChild(n)}
